@@ -1,4 +1,4 @@
-﻿# Time [s]    Subject #    range [m]    bearing [rad] ,,,
+﻿Time,Subject,Range,Bearing
 1248272276,90,2.148,0.025
 1248272277,14,3.387,0.006
 1248272278,14,3.309,-0.015
