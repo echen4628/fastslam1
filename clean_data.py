@@ -58,7 +58,7 @@ def clean_odometry():
             # look at upcoming timestamp indices
             # stop when timestamps do not match, get averages, define as 1x3
             num_matching_time = 1
-            while (timestamp[i] != timestamp[i + num_matching_time]):
+            while (timestamp[i] == timestamp[i + num_matching_time]):
                 # compute average
                 num_matching_time += 1
             pass
