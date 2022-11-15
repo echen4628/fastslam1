@@ -1,71 +1,54 @@
 import csv
-
-def load_data(filename):
-    """Load data from the csv log
-
-    Parameters:
-    filename (str)  -- the name of the csv log
-
-    Returns:
-    data (dict)     -- the logged data with data categories as keys
-                       and values list of floats
-    """
-    f = open(filename + ".csv")
-
-    file_reader = csv.reader(f, delimiter=',')
-
-    # Load data into dictionary with headers as keys
-    data = {}
-    # header = ["# Time [s]", "forward velocity [m/s]", "angular velocity[rad/s]"]
-    # for h in header:
-    #     data[h] = []
-
-    row_num = 0
-    f_log = open("bad_data_log.txt", "w")
-    for row in file_reader:
-        for h, element in zip(header, row):
-            # If got a bad value just use the previous value
-            try:
-                
-                data[h].append(float(element))
-            except ValueError:
-                data[h].append(data[h][-1])
-                f_log.write(str(row_num) + "\n")
-
-        row_num += 1
-    f.close()
-    f_log.close()
-
-    return data
+import pandas as pd
 
 def clean_odometry():
-    #filepath = "c:/Users/echen/cs/e205lab3/"
-    filename = "Robot1_Odometry"
-    data = load_data(filename)
+    filepath = "/Users/Erina/e205labs/fastslam1/fastslam1/data/"
+    filename = "Robot1_Odometry_Copy"
+
+    data = pd.read_csv(filepath + filename + '.csv')
+
     timestamp = data["# Time [s]"]
     forward_v = data["forward velocity [m/s]"]
     angular_v = data["angular velocity[rad/s]"]
-
-    # test load
-    print(data)
 
     # establish csv file for filtered data [TODO, may not be needed]
     header = ["# Time [s]", "forward velocity [m/s]", "angular velocity[rad/s]"]
 
     # loop through time stamps
+    filtered_data = []
     for i in range(len(timestamp)):
+        matching_timestamp_list = data[timestamp == timestamp[i]]
         if (i == 0):
             # look at upcoming timestamp indices
             # stop when timestamps do not match, get averages, define as 1x3
-            num_matching_time = 1
-            while (timestamp[i] == timestamp[i + num_matching_time]):
-                # compute average
-                num_matching_time += 1
-            pass
+            timestamp_avg_fv = matching_timestamp_list["forward velocity [m/s]"].mean()
+            timestamp_avg_av = matching_timestamp_list["angular velocity[rad/s]"].mean()
+            timestamp_avg_data = [timestamp[i], timestamp_avg_fv, timestamp_avg_av]
+            filtered_data.append(timestamp_avg_data)
         elif(timestamp[i] != timestamp[i-1]):
             # look at upcoming timestamp indices
             # stop when timestamps do not match, get averages, define as 1x3
-            pass
+            timestamp_avg_fv = matching_timestamp_list["forward velocity [m/s]"].mean()
+            timestamp_avg_av = matching_timestamp_list["angular velocity[rad/s]"].mean()
+            timestamp_avg_data = [timestamp[i], timestamp_avg_fv, timestamp_avg_av]
+            filtered_data.append(timestamp_avg_data)
         else:
             # go to next timestamp, indexed point should already have been accounted for
             pass
+
+    # print(filtered_data) 
+  
+        
+    csv_filename = 'Cleaned_Robot1_Odometry.csv'
+    print("Beginning transfer")
+    fieldnames = ["# Time [s]","forward velocity [m/s]","angular velocity[rad/s]"]
+    with open(csv_filename, mode='w') as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+        for i in filtered_data:
+            writer.writerow({fieldnames[0]: i[0], fieldnames[1]: i[1], fieldnames[2]: i[2]})
+    
+
+if __name__ == "__main__":
+    # main()
+    clean_odometry()
