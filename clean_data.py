@@ -34,10 +34,7 @@ def clean_odometry():
             filtered_data.append(timestamp_avg_data)
         else:
             # go to next timestamp, indexed point should already have been accounted for
-            pass
-
-    # print(filtered_data) 
-  
+            pass  
         
     csv_filename = 'Cleaned_Robot1_Odometry.csv'
     print("Beginning transfer")
@@ -47,8 +44,79 @@ def clean_odometry():
         writer.writeheader()
         for i in filtered_data:
             writer.writerow({fieldnames[0]: i[0], fieldnames[1]: i[1], fieldnames[2]: i[2]})
-    
+
+
+def clean_measurement():
+    # robots are subjects 1-5, landmarks are subjects 16-20. Robot 1 is subject 1 (barcode 5)   
+    # barcodes to ignore: 5, 14, 41, 32, 23
+    filepath = "/Users/Erina/e205labs/fastslam1/fastslam1/data/"
+    filename = "Robot1_Measurement"
+
+    data = pd.read_csv(filepath + filename + '.csv')
+    # sort by time and barcode to simplify iteration process
+    sorted_data = data.sort_values(by=["Time", "Subject"])
+    sorted_data = sorted_data.reset_index()
+
+    timestamp = sorted_data["Time"]
+    subject = sorted_data["Subject"]
+
+    robot_barcodes = [5, 14, 41, 32, 23]
+    landmark_barcodes = [72, 27, 54, 70, 36, 18, 25, 9, 81, 16, 90, 61, 45, 7, 63]
+
+    filtered_data = []
+    for i in range(len(timestamp)):
+        matching_timestamp_list = sorted_data[timestamp == timestamp[i]]
+        sub_subject_list = matching_timestamp_list["Subject"]
+
+        if (i == 0):
+            landmark_index = landmark_barcodes.index(sub_subject_list[i])
+            landmark_num = landmark_index + 6
+            sub_barcode_data = matching_timestamp_list[subject == sub_subject_list[i]]
+            sub_timestamp_avg_range = sub_barcode_data["Range"].mean()
+            sub_timestamp_avg_bearing = sub_barcode_data["Bearing"].mean()
+            sub_timestamp_avg_data = [timestamp[i], landmark_num,
+                                      sub_timestamp_avg_range, sub_timestamp_avg_bearing]
+            filtered_data.append(sub_timestamp_avg_data)
+            pass
+        elif timestamp[i] != timestamp[i - 1]:
+            for j in range(len(sub_subject_list)):
+                if (j == 0) and (sub_subject_list[i+j] not in robot_barcodes):
+                    sub_barcode_data = matching_timestamp_list[subject == sub_subject_list[i+j]]
+                    landmark_index = landmark_barcodes.index(sub_subject_list[i+j])
+                    landmark_num = landmark_index + 6
+                    # print(sub_barcode_data)
+                    sub_timestamp_avg_range = sub_barcode_data["Range"].mean()
+                    sub_timestamp_avg_bearing = sub_barcode_data["Bearing"].mean()
+                    sub_timestamp_avg_data = [timestamp[i], landmark_num,
+                                              sub_timestamp_avg_range, sub_timestamp_avg_bearing]
+                    filtered_data.append(sub_timestamp_avg_data)
+                    # print(filtered_data)
+                elif (j > 0) and\
+                        (sub_subject_list[i+j] != sub_subject_list[i+j-1]) and \
+                        (sub_subject_list[i+j] not in robot_barcodes):
+                    sub_barcode_data = matching_timestamp_list[subject == sub_subject_list[i+j]]
+                    landmark_index = landmark_barcodes.index(sub_subject_list[i + j])
+                    landmark_num = landmark_index + 6
+                    sub_timestamp_avg_range = sub_barcode_data["Range"].mean()
+                    sub_timestamp_avg_bearing = sub_barcode_data["Bearing"].mean()
+                    sub_timestamp_avg_data = [timestamp[i], landmark_num,
+                                              sub_timestamp_avg_range, sub_timestamp_avg_bearing]
+                    filtered_data.append(sub_timestamp_avg_data)
+                else:
+                    pass
+        else:
+            # go to next timestamp, indexed point should already have been accounted for
+            pass
+
+    csv_filename = 'Cleaned_Robot1_Measurement.csv'
+    fieldnames = ["Time", "Subject", "Range", "Bearing"]
+    with open(csv_filename, mode='w') as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+        for i in filtered_data:
+            writer.writerow({fieldnames[0]: i[0], fieldnames[1]: i[1],
+                             fieldnames[2]: i[2], fieldnames[3]: i[3]})
 
 if __name__ == "__main__":
-    # main()
-    clean_odometry()
+    # clean_odometry()
+    clean_measurement()
