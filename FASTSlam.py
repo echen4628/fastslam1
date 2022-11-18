@@ -1,4 +1,6 @@
 import numpy as np
+import math
+
 class Particle():
     def __init__(self):
         self.state = np.zeros(3)
@@ -26,9 +28,9 @@ class Particle():
         self.state[2] = yaw
 
     def __repr__(self):
-        return f"X: {self.get_x} \n \
-                 Y: {self.get_y} \n \
-                 yaw: {self.get_yaw} \n \
+        return f"X: {self.get_x()} \n \
+                 Y: {self.get_y()} \n \
+                 yaw: {self.get_yaw()} \n \
                  landmark: {self.landmark} \n \
                  landmark_cov: {self.landmark_cov} \n \
                 ------------------------"
@@ -56,10 +58,15 @@ class Fastslam():
         pass
     
     def propagate_all_states(self, u_t_noiseless, dt):
-        
-        pass
+        for i in range(len(self.particles)):
+            self.particles[i].state = self.propogate_single_particle_state(self.particles[i].state, u_t_noiseless, dt)
+            x_t_var = np.array([1,1,1])
+            x_t_noise_x = np.random.normal(0, x_t_var[0])
+            x_t_noise_y = np.random.normal(0, x_t_var[1])
+            x_t_noise_z = np.random.normal(0, x_t_var[2])
+            self.particles[i].state += np.array([x_t_noise_x, x_t_noise_y, x_t_noise_z])
 
-    def propogate_single_particle_state(x_t_prev, u_t_noiseless, delta_t):
+    def propogate_single_particle_state(self, x_t_prev, u_t_noiseless, delta_t):
         """
         Propagate/predict the state based on chosen motion model
 
@@ -70,21 +77,14 @@ class Fastslam():
         Returns:
         x_bar_t (np.array)   -- the predicted state
         """
-        pass
         x_bar_t = np.zeros((3))
-
-
-        x_bar_t[0:, 0] = x_t_prev[0:, 0] + x_t_prev[0:, 2]*delta_t # x
-        x_bar_t[0:, 0] = x_t_prev[0:, 0] + u_t_noiseless[0]*np.cos(x_t_prev[0:, 4])*delta_t
         
+        x_bar_t[0] = x_t_prev[0] + u_t_noiseless[0]*np.cos(x_t_prev[2])*delta_t
+        x_bar_t[1] = x_t_prev[1] + u_t_noiseless[0]*np.sin(x_t_prev[2])*delta_t
+        x_bar_t[2] = x_t_prev[2] + u_t_noiseless[1]*delta_t
+
+        return x_bar_t
         
-        x_bar_t[0:, 1] = x_t_prev[0:, 1] + x_t_prev[0:, 3]*delta_t # y
-        x_bar_t[0:, 2] = x_t_prev[0:, 2] + u_t_noiseless[0] * \
-        np.cos(x_t_prev[0:, 4])*delta_t  # needs to be in radian
-        x_bar_t[:, 3] = x_t_prev[:, 3] + u_t_noiseless[0]*  \
-        np.sin(x_t_prev[:, 4])*delta_t
-        x_bar_t[:, 4] = x_t_prev[:, 4] + u_t_noiseless[1]*delta_t # yaw
-        # x_bar_t[0:, 5] = x_t_prev[0:, 5] # weight
 
 #    def propogate_state(x_t_prev, u_t_noiseless):
 #     """Propagate/predict the state based on chosen motion model
@@ -112,10 +112,23 @@ class Fastslam():
 
     def reweight(self, z_t, sigma_z_t):
         # reweight this self.next_particles
+        # Q = np.identity(2)
+        
+        # need to loop through the z_t
+
+        # calc the weight contribution from each measurement
+
+        # multiple with the original weight
+
+        # call correction step on the measurements while at it.
+        
         pass
 
     def correction(self, z_t, sigma_z_t):
         # use self.next_particles and perform the correction step on all of them
+
+        # to do the correction step, we can compare the measured range and theta
+        # with the calcuated range and theta using the distance formula and atan2
         pass
 
     def combine_particles(self):
@@ -129,3 +142,7 @@ class Fastslam():
 if __name__ == "__main__":
     num_particles = 3
     test = Fastslam(num_particles)
+    test.propagate_all_states(np.array([3, 1.5]) , 1)
+    print(test.particles[0].state)
+    test.propagate_all_states(np.array([3, 1.5]) , 1)
+    print(test.particles[0].state)

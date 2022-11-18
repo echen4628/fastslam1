@@ -253,7 +253,7 @@ def prediction_step(x_t_prev, u_t, sigma_x_t_prev):
     # call functions to get needed matrices
     G_x_t = calc_prop_jacobian_x(x_t_prev, u_t)
     G_u_t = calc_prop_jacobian_u(x_t_prev, u_t)
-    sigma_x_prev = np.identity(5)
+    # sigma_x_prev = np.identity(5) # bad
 
     # compute sigma_x_bar_t
     # pdb.set_trace()
