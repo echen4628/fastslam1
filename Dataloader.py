@@ -13,13 +13,18 @@ initialization (long)
 """
 import pandas as pd
 class Dataloader():
-    def __init__(self, odometry_data_path, measurement_data_path):
+    def __init__(self, odometry_data_path, measurement_data_path, robot_groundtruth_data_path=None):
         self.measurement_data_path = measurement_data_path
         self.odometry_data_path = odometry_data_path
+        self.groundtruth_data_path = robot_groundtruth_data_path
         self.measurement_df = pd.read_csv(self.measurement_data_path)
         self.odometry_df = pd.read_csv(self.odometry_data_path)
+        if self.groundtruth_data_path:
+            self.groundtruth_df = pd.read_csv(self.groundtruth_data_path)
         self.odometry_idx = 0
         self.measurement_idx = 0
+        self.groundtruth_idx = 0
+        self.len = len(self.odometry_df)
     
     def get_next(self, threshold):
         current_odometry = self.odometry_df.loc[self.odometry_idx]
@@ -35,6 +40,15 @@ class Dataloader():
             next_measurement = self.measurement_df.loc[self.measurement_idx]
             measurement_time = next_measurement["Time"]
         return current_odometry, all_measurements
+    
+    def get_next_groundtruth(self):
+        if self.groundtruth_data_path:
+            current_groundtruth = self.groundtruth_df.loc[self.groundtruth_idx]
+            self.groundtruth_idx += 1
+            return current_groundtruth
+        else:
+            print("Missing groundtruth data, check if path is supplied")
+            return None
     
     def reset_idx(self):
         self.odometry_idx = 0

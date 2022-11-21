@@ -11,9 +11,6 @@ def clean_odometry():
     forward_v = data["forward velocity [m/s]"]
     angular_v = data["angular velocity[rad/s]"]
 
-    # establish csv file for filtered data [TODO, may not be needed]
-    header = ["# Time [s]", "forward velocity [m/s]", "angular velocity[rad/s]"]
-
     # loop through time stamps
     filtered_data = []
     for i in range(len(timestamp)):
@@ -117,6 +114,51 @@ def clean_measurement():
             writer.writerow({fieldnames[0]: i[0], fieldnames[1]: i[1],
                              fieldnames[2]: i[2], fieldnames[3]: i[3]})
 
+def clean_robot_groundtruth():
+    # filepath = "/Users/Erina/e205labs/fastslam1/fastslam1/data/"
+    # filename = "Robot1_Groundtruth"
+
+    filepath = "./data/Robot1_Groundtruth.csv"
+
+    #data = pd.read_csv(filepath + filename + '.csv')
+    data = pd.read_csv(filepath)
+
+    timestamp = data["Time"]
+
+    # loop through time stamps
+    filtered_data = []
+    for i in range(len(timestamp)):
+        matching_timestamp_list = data[timestamp == timestamp[i]]
+        if (i == 0):
+            # look at upcoming timestamp indices
+            # stop when timestamps do not match, get averages, define as 1x3
+            timestamp_avg_x = matching_timestamp_list["X"].mean()
+            timestamp_avg_y = matching_timestamp_list["Y"].mean()
+            timestamp_avg_or = matching_timestamp_list["Orientation"].mean()
+            timestamp_avg_data = [timestamp[i], timestamp_avg_x, timestamp_avg_y, timestamp_avg_or]
+            filtered_data.append(timestamp_avg_data)
+        elif(timestamp[i] != timestamp[i-1]):
+            # look at upcoming timestamp indices
+            # stop when timestamps do not match, get averages, define as 1x3
+            timestamp_avg_x = matching_timestamp_list["X"].mean()
+            timestamp_avg_y = matching_timestamp_list["Y"].mean()
+            timestamp_avg_or = matching_timestamp_list["Orientation"].mean()
+            timestamp_avg_data = [timestamp[i], timestamp_avg_x, timestamp_avg_y, timestamp_avg_or]
+            filtered_data.append(timestamp_avg_data)
+        else:
+            # go to next timestamp, indexed point should already have been accounted for
+            pass  
+        
+    csv_filename = 'Cleaned_Robot1_Groundtruth.csv'
+    print("Beginning transfer")
+    fieldnames = ["Time","X","Y","Orientation"]
+    with open(csv_filename, mode='w') as csv_file:
+        writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+        writer.writeheader()
+        for i in filtered_data:
+            writer.writerow({fieldnames[0]: i[0], fieldnames[1]: i[1], fieldnames[2]: i[2], fieldnames[3]: i[3]})
+
 if __name__ == "__main__":
     # clean_odometry()
-    clean_measurement()
+    # clean_measurement()
+    clean_robot_groundtruth()

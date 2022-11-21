@@ -114,6 +114,7 @@ class Fastslam():
         # reweight this self.next_particles
         # Q = np.identity(2)
         
+        
         # need to loop through the z_t
 
         # calc the weight contribution from each measurement
@@ -133,7 +134,12 @@ class Fastslam():
 
     def combine_particles(self):
         # average the self.next_particles and store value
-        pass
+        combined_state = np.zeros(3)
+        for i in range(len(self.weights)):
+            combined_state[0] = self.particles[i].get_x()*self.weights[i]
+            combined_state[1] = self.particles[i].get_y()*self.weights[i]
+            combined_state[2] = self.particles[i].get_yaw()*self.weights[i]
+        return combined_state
 
     def resample(self):
         # resample from self.next_particles and then reassign self.particles
