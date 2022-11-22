@@ -37,6 +37,8 @@ class Dataloader():
             if measurement_time-time <= threshold:
                 all_measurements.append(next_measurement)
             self.measurement_idx += 1
+            if self.measurement_idx >= len(self.measurement_df):
+                break
             next_measurement = self.measurement_df.loc[self.measurement_idx]
             measurement_time = next_measurement["Time"]
         return current_odometry, all_measurements

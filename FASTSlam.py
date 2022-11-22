@@ -14,6 +14,14 @@ class Particle():
         #[ [[1,2],
         #    [3,4]],
         #   [[]]]
+
+        self.set_x(3.5718479294117658)
+        self.set_y(-3.3314256499999995)
+        self.set_yaw(2.3551147058823525)
+        # self.set_x(10)
+        # self.set_y(10)
+        # self.set_yaw(10)
+
     def get_x(self):
         return self.state[0]
     def get_y(self):
@@ -60,11 +68,11 @@ class Fastslam():
     def propagate_all_states(self, u_t_noiseless, dt):
         for i in range(len(self.particles)):
             self.particles[i].state = self.propogate_single_particle_state(self.particles[i].state, u_t_noiseless, dt)
-            x_t_var = np.array([1,1,1])
-            x_t_noise_x = np.random.normal(0, x_t_var[0])
-            x_t_noise_y = np.random.normal(0, x_t_var[1])
-            x_t_noise_z = np.random.normal(0, x_t_var[2])
-            self.particles[i].state += np.array([x_t_noise_x, x_t_noise_y, x_t_noise_z])
+            # x_t_var = np.array([1,1,1])
+            # x_t_noise_x = np.random.normal(0, x_t_var[0])
+            # x_t_noise_y = np.random.normal(0, x_t_var[1])
+            # x_t_noise_z = np.random.normal(0, x_t_var[2])
+            # self.particles[i].state += np.array([x_t_noise_x, x_t_noise_y, x_t_noise_z])
 
     def propogate_single_particle_state(self, x_t_prev, u_t_noiseless, delta_t):
         """
