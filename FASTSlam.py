@@ -4,9 +4,6 @@ import math
 class Particle():
     def __init__(self):
         self.state = np.zeros(3)
-        # self.x = 0
-        # self.y = 0
-        # self.yaw = 0 
         self.landmark = np.zeros((15,2))
         #[[1,2],
         #  [2,3]]
@@ -18,9 +15,6 @@ class Particle():
         self.set_x(3.5718479294117658)
         self.set_y(-3.3314256499999995)
         self.set_yaw(2.3551147058823525)
-        # self.set_x(10)
-        # self.set_y(10)
-        # self.set_yaw(10)
 
     def get_x(self):
         return self.state[0]
@@ -48,9 +42,9 @@ class Fastslam():
         self.num_particles = num_particles
         self.particles = [Particle() for i in range(num_particles)]
         self.weights = np.ones(num_particles)*(1/num_particles)
-        self.next_particles = [Particle() for i in range(num_particles)]
-        self.next_weights = np.ones(num_particles)*(1/num_particles)
-        self.weighted_particle = Particle()
+        # self.next_particles = [Particle() for i in range(num_particles)]
+        # self.next_weights = np.ones(num_particles)*(1/num_particles)
+        # self.weighted_particle = Particle()
     
     def __repr__(self):
         return f"num_particles: {self.num_particles}\n \
@@ -58,12 +52,28 @@ class Fastslam():
                  weights: {self.weights[:3]}\n \
                  weighted_particle: {self.weighted_particle}"
 
-    def prediction(self):
-        # propagate and add noise using the self.particles
-        #  and store in self.next_particles
+    # def prediction(self):
+    #     # propagate and add noise using the self.particles
+    #     #  and store in self.next_particles
 
-        # self.next_particles will be updated
-        pass
+    #     # self.next_particles will be updated
+    #     pass
+    
+    def wrap_to_pi(self, angle):
+        """Wrap angle data in radians to [-pi, pi]
+
+        Parameters:
+        angle (float)   -- unwrapped angle
+
+        Returns:
+        angle (float)   -- wrapped angle
+        """
+        while angle >= math.pi:
+            angle -= 2*math.pi
+
+        while angle <= -math.pi:
+            angle += 2*math.pi
+        return angle
     
     def propagate_all_states(self, u_t_noiseless, dt):
         for i in range(len(self.particles)):
@@ -93,35 +103,80 @@ class Fastslam():
 
         return x_bar_t
         
+    def reweight_and_update(self, measurements):
+        """
+        measurements: [[tag, r, theta], [tag, r, theta]]
+        """
+        for idx, p in enumerate(self.particles):
+            for z in measurements:
+                subject_tag = z["Subject"]
+                sensor = [z["Range"], z["Bearing"]]
+                robot_states = [p.get_x(), p.get_y(), p.get_yaw()]
+                # go from z[tag] to self.particle.landmark[tag-6] (1x2)
+                current_landmark =  p.landmark[subject_tag-6].reshape((2))
+                    
+                # get covariance index self.landmark_cov[tag-6] (1x2x2)
+                current_landmark_cov =  p.landmark_cov[subject_tag-6].reshape((2, 2))
+                
+                # change measurement to become a measurement of where the robot is
+                    # things we get from measurement: measurement_theta, measurement_range
+                    # things we get from our particle: landmark x, y, yaw
+                measured_landmark_x, measured_landmark_y = self.sensor_to_measured_robot_state(sensor, robot_states)
+                if np.all(current_landmark == np.array([0,0])): # never seen this landmark before
+                    # intialize landmark
+                    p.landmark[subject_tag-6][0] = measured_landmark_x
+                    p.landmark[subject_tag-6][1] = measured_landmark_y
+                else:
+                    # find difference between estimation/pred and measurement z - z hat
+                    z_diff = np.zeros((2,1))
+                    H_t = np.identity(2)
+                    z_diff[0,0] = current_landmark[0] - measured_landmark_x
+                    z_diff[1,0] = current_landmark[1] - measured_landmark_y
+                    # find Modified_ measurement covariance H*Cov_landmark*H^T + Q <-identity.
+                    sensor_cov = np.identity(2)
+                    modified_measurement_cov = self.calc_measurement_cov(current_landmark_cov, sensor_cov)
+                    # find w*
+                    self.weights[idx] =  self.weights[idx]* self.calc_weight(modified_measurement_cov, z_diff)
+                    # call the update function to update landmark of particle p
+                    updated_landmark, updated_landmark_cov = self.update(modified_measurement_cov, current_landmark_cov, H_t, current_landmark, z_diff)
+                    p.landmark[subject_tag-6] = updated_landmark
+                    p.landmark_cov[subject_tag-6] = updated_landmark_cov
 
-#    def propogate_state(x_t_prev, u_t_noiseless):
-#     """Propagate/predict the state based on chosen motion model
+    def update(self, modified_measurment_cov, landmark_cov, H_t, current_landmark, z_diff):
+        K_t = landmark_cov@H_t.T@np.linalg.inv(modified_measurment_cov)
+        updated_landmark = current_landmark + (K_t@z_diff).reshape(2) # 2
+        updated_landmark_cov = (np.identity(2) - K_t@H_t)@landmark_cov # 2x2
+        return updated_landmark, updated_landmark_cov
+    
+    def calc_weight(self, modified_measurement_cov, z_diff):
+        inverted_cov_term = np.linalg.inv(modified_measurement_cov)
+        exp_term = -0.5*z_diff.T@inverted_cov_term@z_diff
+        weight_coefficient = np.linalg.det(2*np.pi*modified_measurement_cov)**(-0.5)
+        return weight_coefficient*np.e**(exp_term)
 
-#     Parameters:
-#     x_t_prev (np.array)  -- the previous state estimate
-#     u_t (np.array)       -- the current control input (odometry)
+    def sensor_to_measured_robot_state(self, sensor, robot_states):
+        """
+        sensor = [r, theta]
+        robot_states = [x,y,yaw]
+        """
+        robot_x = robot_states[0]
+        robot_y = robot_states[1]
+        robot_yaw = robot_states[2]
+        r = sensor[0]
+        theta = sensor[1]
 
-#     Returns:
-#     x_bar_t (np.array)   -- the predicted state
-#     """
-#     """STUDENT CODE START"""
-#     x_bar_t = np.zeros((x_t_prev.shape[0], 6))
-#     delta_t = 0.1  # based on sampling rate of 10Hz
-#     x_bar_t[0:, 0] = x_t_prev[0:, 0] + x_t_prev[0:, 2]*delta_t
-#     x_bar_t[0:, 1] = x_t_prev[0:, 1] + x_t_prev[0:, 3]*delta_t
-#     x_bar_t[0:, 2] = x_t_prev[0:, 2] + u_t_noiseless[0] * \
-#         np.cos(x_t_prev[0:, 4])*delta_t  # needs to be in radian
-#     x_bar_t[:, 3] = x_t_prev[:, 3] + u_t_noiseless[0]*  \
-#         np.sin(x_t_prev[:, 4])*delta_t
-#     x_bar_t[:, 4] = x_t_prev[:, 4] + u_t_noiseless[1]*delta_t
-#     x_bar_t[0:, 5] = x_t_prev[0:, 5]
-# """STUDENT CODE END"""
-#      return x_bar_t
+        measured_landmark_x = robot_x + r*np.cos(theta + robot_yaw)
+        measured_landmark_y = robot_y + r*np.sin(theta + robot_yaw)
+
+        return measured_landmark_x, measured_landmark_y
+    
+    def calc_measurement_cov(self, landmark_cov, Q):
+        H = np.identity(2)
+        return H @ landmark_cov @ H.T + Q
 
     def reweight(self, z_t, sigma_z_t):
         # reweight this self.next_particles
-        # Q = np.identity(2)
-        
+        Q = np.identity(2)
         
         # need to loop through the z_t
 
@@ -132,6 +187,24 @@ class Fastslam():
         # call correction step on the measurements while at it.
         
         pass
+
+    def calc_single_particle_jacobian(self, particle_states, landmark_state, landmark_cov, Q):
+        """
+        particle_states 1D length 3
+        landmark_state 1D length 2
+        landmark_cov 2D length 2x2
+        Q is 2x2
+        """
+        dx = landmark_state[0] - particle_states[0]
+        dy = landmark_state[1] - particle_states[1]
+        d2 = dx**2 + dy**2
+        d = math.sqrt(dx)
+        dyaw = self.wrap_to_pi(math.atan2(dy, dx) - particle_states[2])
+
+        zp = np.array(d, dyaw)
+        H_t = np.array([[dx/d, dy/d], [-dy/d2, dx/d2]])
+        
+        return zp, H_t
 
     def correction(self, z_t, sigma_z_t):
         # use self.next_particles and perform the correction step on all of them

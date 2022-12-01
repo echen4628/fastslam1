@@ -85,8 +85,8 @@ def animate_path(x_positions, y_positions):
 
 
 ani = animate_path(combined_x, combined_y)
-FFwrite = animation.PillowWriter(fps = 10)
-ani.save("animation.mp4", FFwrite)
+# FFwrite = animation.PillowWriter(fps = 10)
+ani.save("animation.gif")
 
 
 # # # example code

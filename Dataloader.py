@@ -58,4 +58,4 @@ class Dataloader():
 
 if __name__ == "__main__":
     # loader = Dataloader("./data/Robot1_Odometry.csv", "./data/Robot1_Measurement.csv")
-    loader = Dataloader("./Cleaned_Robot1_Odometry.csv", "./data/Robot1_Measurement.csv")
+    loader = Dataloader("./data/Cleaned_Robot1_Odometry.csv", "./data/Cleaned_Robot1_Measurement.csv")
