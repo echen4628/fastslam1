@@ -109,7 +109,7 @@ class Fastslam():
         """
         for idx, p in enumerate(self.particles):
             for z in measurements:
-                subject_tag = z["Subject"]
+                subject_tag = int(z["Subject"])
                 sensor = [z["Range"], z["Bearing"]]
                 robot_states = [p.get_x(), p.get_y(), p.get_yaw()]
                 # go from z[tag] to self.particle.landmark[tag-6] (1x2)

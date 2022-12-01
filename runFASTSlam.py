@@ -26,9 +26,11 @@ combined_x = []
 combined_y = []
 for i in range(dataloader.len):
     # pdb.set_trace()
+    # print(i)
     current_odometry, all_measurements = dataloader.get_next(0)
     u_t_noiseless = np.array([current_odometry["Forward-velocity"], current_odometry["Angular-velocity"]])
     filter.propagate_all_states(u_t_noiseless, dt)
+    filter.reweight_and_update(all_measurements)
     combined_state = filter.combine_particles()
     # combined_state is a 3x1 array
     # append to that list
