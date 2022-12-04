@@ -6,6 +6,7 @@ import matplotlib.animation as animation
 import Dataloader
 import FASTSlam
 import pdb
+from tqdm import tqdm
 
 # load in the csv with pandas
 groundtruth_data = pd.read_csv("./data/Cleaned_Robot1_Groundtruth.csv")
@@ -21,22 +22,38 @@ dataloader = Dataloader.Dataloader("./data/Cleaned_Robot1_Odometry.csv", "./data
 
 # resulting x list
 # resulitng y list
-filter = FASTSlam.Fastslam(5)
+filter = FASTSlam.Fastslam(3)
 combined_x = []
 combined_y = []
-for i in range(dataloader.len):
+
+static_fig, static_ax = plt.subplots()
+static_ax.scatter(groundtruth_x, groundtruth_y)
+static_ax.scatter(landmark_x, landmark_y)
+static_ax.scatter(combined_x, combined_y)
+final_landmark = None
+# plt.show()
+for i in tqdm(range(dataloader.len)):
     # pdb.set_trace()
     # print(i)
     current_odometry, all_measurements = dataloader.get_next(0)
     u_t_noiseless = np.array([current_odometry["Forward-velocity"], current_odometry["Angular-velocity"]])
     filter.propagate_all_states(u_t_noiseless, dt)
+    # print(filter.particles[0].state)
     filter.reweight_and_update(all_measurements)
-    combined_state = filter.combine_particles()
+    # filter.resample()
+    combined_state, combined_landmark= filter.combine_particles()
+    # filter.resample()
+    static_ax.scatter(combined_state[0], combined_state[1], c="g")
+    #resample
     # combined_state is a 3x1 array
     # append to that list
+
     combined_x.append(combined_state[0])
     combined_y.append(combined_state[1])
+    final_landmark = combined_landmark
 
+
+static_ax.scatter(combined_landmark[:, 0], combined_landmark[:,1])
 # plot all points
 # static_fig, static_ax = plt.subplots()
 # static_ax.scatter(groundtruth_x, groundtruth_y)
@@ -88,7 +105,7 @@ def animate_path(x_positions, y_positions):
 
 ani = animate_path(combined_x, combined_y)
 # FFwrite = animation.PillowWriter(fps = 10)
-ani.save("animation.gif")
+# ani.save("animation.gif")
 
 
 # # # example code

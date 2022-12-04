@@ -1,5 +1,6 @@
 import numpy as np
 import math
+import pdb
 
 class Particle():
     def __init__(self):
@@ -32,10 +33,14 @@ class Particle():
     def __repr__(self):
         return f"X: {self.get_x()} \n \
                  Y: {self.get_y()} \n \
-                 yaw: {self.get_yaw()} \n \
-                 landmark: {self.landmark} \n \
-                 landmark_cov: {self.landmark_cov} \n \
-                ------------------------"
+                 yaw: {self.get_yaw()} \n"
+
+        # return f"X: {self.get_x()} \n \
+        #          Y: {self.get_y()} \n \
+        #          yaw: {self.get_yaw()} \n \
+        #          landmark: {self.landmark} \n \
+        #          landmark_cov: {self.landmark_cov} \n \
+        #         ------------------------"
         
 class Fastslam():
     def __init__(self, num_particles):
@@ -76,14 +81,17 @@ class Fastslam():
         return angle
     
     def propagate_all_states(self, u_t_noiseless, dt):
+        print("Entered propagate")
+        print(self.particles)
+        print(u_t_noiseless)
         for i in range(len(self.particles)):
             self.particles[i].state = self.propogate_single_particle_state(self.particles[i].state, u_t_noiseless, dt)
-            # x_t_var = np.array([1,1,1])
+            # x_t_var = np.array([1,1,0.2])
             # x_t_noise_x = np.random.normal(0, x_t_var[0])
             # x_t_noise_y = np.random.normal(0, x_t_var[1])
             # x_t_noise_z = np.random.normal(0, x_t_var[2])
             # self.particles[i].state += np.array([x_t_noise_x, x_t_noise_y, x_t_noise_z])
-
+        print(self.particles)
     def propogate_single_particle_state(self, x_t_prev, u_t_noiseless, delta_t):
         """
         Propagate/predict the state based on chosen motion model
@@ -136,11 +144,14 @@ class Fastslam():
                     sensor_cov = np.identity(2)
                     modified_measurement_cov = self.calc_measurement_cov(current_landmark_cov, sensor_cov)
                     # find w*
-                    self.weights[idx] =  self.weights[idx]* self.calc_weight(modified_measurement_cov, z_diff)
+                    new_w = max(0.0000001, self.calc_weight(modified_measurement_cov, z_diff))
+                    self.weights[idx] =  self.weights[idx] * new_w
                     # call the update function to update landmark of particle p
                     updated_landmark, updated_landmark_cov = self.update(modified_measurement_cov, current_landmark_cov, H_t, current_landmark, z_diff)
                     p.landmark[subject_tag-6] = updated_landmark
                     p.landmark_cov[subject_tag-6] = updated_landmark_cov
+        
+        self.weights = self.weights/(np.sum(self.weights))
 
     def update(self, modified_measurment_cov, landmark_cov, H_t, current_landmark, z_diff):
         K_t = landmark_cov@H_t.T@np.linalg.inv(modified_measurment_cov)
@@ -174,19 +185,19 @@ class Fastslam():
         H = np.identity(2)
         return H @ landmark_cov @ H.T + Q
 
-    def reweight(self, z_t, sigma_z_t):
-        # reweight this self.next_particles
-        Q = np.identity(2)
+    # def reweight(self, z_t, sigma_z_t):
+    #     # reweight this self.next_particles
+    #     Q = np.identity(2)
         
-        # need to loop through the z_t
+    #     # need to loop through the z_t
 
-        # calc the weight contribution from each measurement
+    #     # calc the weight contribution from each measurement
 
-        # multiple with the original weight
+    #     # multiple with the original weight
 
-        # call correction step on the measurements while at it.
+    #     # call correction step on the measurements while at it.
         
-        pass
+    #     pass
 
     def calc_single_particle_jacobian(self, particle_states, landmark_state, landmark_cov, Q):
         """
@@ -215,16 +226,39 @@ class Fastslam():
 
     def combine_particles(self):
         # average the self.next_particles and store value
+        print("Entered combine_particles")
+        print(self.particles)
         combined_state = np.zeros(3)
+        combined_landmarks = np.zeros((15,2))
         for i in range(len(self.weights)):
-            combined_state[0] = self.particles[i].get_x()*self.weights[i]
-            combined_state[1] = self.particles[i].get_y()*self.weights[i]
-            combined_state[2] = self.particles[i].get_yaw()*self.weights[i]
-        return combined_state
+            combined_state[0] += self.particles[i].get_x()*self.weights[i]
+            combined_state[1] += self.particles[i].get_y()*self.weights[i]
+            combined_state[2] += self.particles[i].get_yaw()*self.weights[i]
+            combined_landmarks += self.particles[i].landmark*self.weights[i]
+        print(self.particles)
+        return combined_state, combined_landmarks
 
     def resample(self):
+        # pdb.set_trace()
+        print("Entered resample")
+        print(self.particles)
+        # get current weights
+        current_weights = self.weights
+        rng = np.random.default_rng()
+        # pdb.set_trace()
+        try:
+            selected_indices = rng.choice(np.arange(self.num_particles), self.num_particles, p=current_weights)
+        except:
+            pdb.set_trace()
         # resample from self.next_particles and then reassign self.particles
-        pass
+        self.weights = self.weights[selected_indices]
+        new_particles = []
+        for i in range(len(selected_indices)):
+            new_particles.append(self.particles[selected_indices[i]])
+        self.particles = new_particles
+        print(self.particles)
+        # self.particles = [self.particles[i] for i in selected_indices]
+        
 
 if __name__ == "__main__":
     num_particles = 3
