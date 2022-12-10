@@ -13,16 +13,31 @@ groundtruth_data = pd.read_csv("./data/Cleaned_Robot1_Groundtruth.csv")
 landmark_data = pd.read_csv("./data/Landmark_Groundtruth.csv")
 groundtruth_x = groundtruth_data["X"]
 groundtruth_y = groundtruth_data["Y"]
+groundtruth_yaw = groundtruth_data["Orientation"]
+
+landmark_subject = landmark_data["Subject"]
 landmark_x = landmark_data["X"]
 landmark_y = landmark_data["Y"]
+landmark_x_cov = landmark_data["X-std-dev"]
+landmark_y_cov = landmark_data["Y-std-dev"]
 dt = 1
+
+# define landmark state groundtruth and covariance
+landmark_pos = []
+landmark_cov = []
+for i in range(len(landmark_x)):
+    landmark_pos.append([landmark_x[i], landmark_y[i]])
+    landmark_cov.append([[landmark_x_cov[i], 0], [0, landmark_y_cov[i]]])
+landmark_pos = np.array(landmark_pos)
+landmark_cov = np.array(landmark_cov)
+  
 
 # FastSlam
 dataloader = Dataloader.Dataloader("./data/Cleaned_Robot1_Odometry.csv", "./data/Cleaned_Robot1_Measurement.csv", "./data/Cleaned_Robot1_Groundtruth.csv")
 
 # resulting x list
 # resulitng y list
-filter = FASTSlam.Fastslam(1000)
+filter = FASTSlam.Fastslam(200)
 combined_x = []
 combined_y = []
 current_est_landmark_x = []
@@ -40,6 +55,8 @@ for i in tqdm(range(dataloader.len)):
     current_odometry, all_measurements = dataloader.get_next(0)
     u_t_noiseless = np.array([current_odometry["Forward-velocity"], current_odometry["Angular-velocity"]])
     filter.propagate_all_states(u_t_noiseless, dt)
+    # filter.set_position_to_groundtruth(np.array([groundtruth_x[i+10], groundtruth_y[i+10], groundtruth_yaw[i+10]]))
+    filter.set_landmark_to_groundtruth(landmark_pos, landmark_cov)
     # print(filter.particles[0].state)
     filter.reweight_and_update(all_measurements)
     # filter.resample()
@@ -59,16 +76,16 @@ for i in tqdm(range(dataloader.len)):
     final_landmark = combined_landmark
 
 
-# static_ax.scatter(combined_landmark[:, 0], combined_landmark[:,1])
+static_ax.scatter(combined_landmark[:, 0], combined_landmark[:,1])
 # plot all points
-static_fig, static_ax = plt.subplots()
-static_ax.scatter(groundtruth_x, groundtruth_y)
-static_ax.scatter(landmark_x, landmark_y)
-static_ax.scatter(combined_x, combined_y)
-static_ax.set_title("Ground Truth Robot Path and Landmark")
-static_ax.set_xlabel("X (m)")
-static_ax.set_ylabel("Y (m)")
-plt.show()
+# static_fig, static_ax = plt.subplots()
+# static_ax.scatter(groundtruth_x, groundtruth_y)
+# static_ax.scatter(landmark_x, landmark_y)
+# static_ax.scatter(combined_x, combined_y)
+# static_ax.set_title("Ground Truth Robot Path and Landmark")
+# static_ax.set_xlabel("X (m)")
+# static_ax.set_ylabel("Y (m)")
+# plt.show()
 
 # Plot RMS of robot position x, y
 rms_robot = []
@@ -116,6 +133,9 @@ def animate_path(x_positions, y_positions, est_landmark_x, est_landmark_y):
         ln_groundtruth.set_data(x_groundtruth_data, y_groundtruth_data)
         x_path_data.append(x_positions[frame])
         y_path_data.append(y_positions[frame])
+        # pdb.set_trace()
+        # est_landmark_x_data = est_landmark_x_data + est_landmark_x[frame].tolist()
+        # est_landmark_y_data = est_landmark_y_data + est_landmark_y[frame].tolist()
         ln_path.set_data(x_path_data, y_path_data)
         est_landmark_x_data = [est_landmark_x[frame]]
         est_landmark_y_data = [est_landmark_y[frame]]
@@ -129,7 +149,7 @@ def animate_path(x_positions, y_positions, est_landmark_x, est_landmark_y):
 
     return ani
 
-
+# pdb.set_trace()
 ani = animate_path(combined_x, combined_y, current_est_landmark_x, current_est_landmark_y)
 # FFwrite = animation.PillowWriter(fps = 10)
 # ani.save("animation.gif")
