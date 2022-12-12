@@ -4,8 +4,8 @@ import pdb
 from copy import deepcopy
 
 class Particle():
-    def __init__(self):
-        self.state = np.zeros(3)
+    def __init__(self, starting_state):
+        self.state = starting_state
         self.landmark = np.zeros((15,2))
         #[[1,2],
         #  [2,3]]
@@ -16,9 +16,9 @@ class Particle():
         #    [3,4]],
         #   [[]]]
 
-        self.set_x(3.5718479294117658)
-        self.set_y(-3.3314256499999995)
-        self.set_yaw(2.3551147058823525)
+        # self.set_x(3.5718479294117658)
+        # self.set_y(-3.3314256499999995)
+        # self.set_yaw(2.3551147058823525)
 
     def get_x(self):
         return self.state[0]
@@ -46,9 +46,9 @@ class Particle():
         #         ------------------------"
         
 class Fastslam():
-    def __init__(self, num_particles):
+    def __init__(self, num_particles, starting_state):
         self.num_particles = num_particles
-        self.particles = [Particle() for i in range(num_particles)]
+        self.particles = [Particle(deepcopy(starting_state)) for i in range(num_particles)]
         self.weights = np.ones(num_particles)*(1/num_particles)
         # self.next_particles = [Particle() for i in range(num_particles)]
         # self.next_weights = np.ones(num_particles)*(1/num_particles)
@@ -89,7 +89,8 @@ class Fastslam():
         # print(u_t_noiseless)
         for i in range(len(self.particles)):
             self.particles[i].state = self.propogate_single_particle_state(self.particles[i].state, u_t_noiseless, dt)
-            x_t_var = np.array([0.1,0.1,0.05])
+            #x_t_var = np.array([0.1,0.1,0.0625])
+            x_t_var = np.array([0.075,0.075,0.0])
             x_t_noise_x = np.random.normal(0, x_t_var[0])
             x_t_noise_y = np.random.normal(0, x_t_var[1])
             x_t_noise_z = np.random.normal(0, x_t_var[2])
@@ -143,10 +144,13 @@ class Fastslam():
                     p.landmark[subject_tag][1] = measured_landmark_y
                 else:
                     # find difference between estimation/pred and measurement z - z hat
-                    z_diff = np.zeros((2,1))
+                    # pdb.set_trace()
+
+                    z_diff = np.zeros((3,1))
                     H_t = np.identity(2)
                     z_diff[0,0] = measured_landmark_x - current_landmark[0]
                     z_diff[1,0] = measured_landmark_y - current_landmark[1] 
+                    z_diff[2,0] = self.wrap_to_pi(self.wrap_to_pi(sensor[1]) - (np.arctan2(current_landmark[1], current_landmark[0]) - self.wrap_to_pi(robot_states[2])))
                     # find Modified_ measurement covariance H*Cov_landmark*H^T + Q <-identity.
                     sensor_cov = np.identity(2)/10
                     # sensor_cov = np.zeros((2,2))
@@ -156,7 +160,7 @@ class Fastslam():
                     # new_w = self.calc_weight(modified_measurement_cov, z_diff)
                     self.weights[idx] =  self.weights[idx] * new_w
                     # call the update function to update landmark of particle p
-                    updated_landmark, updated_landmark_cov = self.update(modified_measurement_cov, current_landmark_cov, H_t, current_landmark, z_diff)
+                    updated_landmark, updated_landmark_cov = self.update(modified_measurement_cov[:2,:2], current_landmark_cov, H_t, current_landmark, z_diff[:2])
                     # pdb.set_trace()
                     p.landmark[subject_tag] = updated_landmark
                     # pdb.set_trace()
@@ -194,24 +198,14 @@ class Fastslam():
 
         return measured_landmark_x, measured_landmark_y
     
-    def calc_measurement_cov(self, landmark_cov, Q):
+    def calc_measurement_cov(self, landmark_cov, sensor_covariance):
         # pdb.set_trace()
-        H = np.identity(2)
-        return H @ landmark_cov @ H.T + Q
-
-    # def reweight(self, z_t, sigma_z_t):
-    #     # reweight this self.next_particles
-    #     Q = np.identity(2)
-        
-    #     # need to loop through the z_t
-
-    #     # calc the weight contribution from each measurement
-
-    #     # multiple with the original weight
-
-    #     # call correction step on the measurements while at it.
-        
-    #     pass
+        H = np.identity(3)
+        expanded_landmark_cov = np.identity(3)
+        Q = np.identity(3)
+        expanded_landmark_cov[:2,:2] = landmark_cov
+        Q[:2, :2] = sensor_covariance
+        return H @ expanded_landmark_cov @ H.T + Q
 
     def calc_single_particle_jacobian(self, particle_states, landmark_state, landmark_cov, Q):
         """

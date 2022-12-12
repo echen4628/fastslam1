@@ -2,14 +2,14 @@ import csv
 import pandas as pd
 
 def clean_odometry():
-    filepath = "/Users/Erina/e205labs/fastslam1/fastslam1/data/"
-    filename = "Robot1_Odometry_Copy"
+    filepath = "./data/"
+    filename = "Robot2_Odometry"
 
     data = pd.read_csv(filepath + filename + '.csv')
 
-    timestamp = data["# Time [s]"]
-    forward_v = data["forward velocity [m/s]"]
-    angular_v = data["angular velocity[rad/s]"]
+    timestamp = data["Time"]
+    forward_v = data["Forward-velocity"]
+    angular_v = data["Angular-velocity"]
 
     # loop through time stamps
     filtered_data = []
@@ -18,24 +18,24 @@ def clean_odometry():
         if (i == 0):
             # look at upcoming timestamp indices
             # stop when timestamps do not match, get averages, define as 1x3
-            timestamp_avg_fv = matching_timestamp_list["forward velocity [m/s]"].mean()
-            timestamp_avg_av = matching_timestamp_list["angular velocity[rad/s]"].mean()
+            timestamp_avg_fv = matching_timestamp_list["Forward-velocity"].mean()
+            timestamp_avg_av = matching_timestamp_list["Angular-velocity"].mean()
             timestamp_avg_data = [timestamp[i], timestamp_avg_fv, timestamp_avg_av]
             filtered_data.append(timestamp_avg_data)
         elif(timestamp[i] != timestamp[i-1]):
             # look at upcoming timestamp indices
             # stop when timestamps do not match, get averages, define as 1x3
-            timestamp_avg_fv = matching_timestamp_list["forward velocity [m/s]"].mean()
-            timestamp_avg_av = matching_timestamp_list["angular velocity[rad/s]"].mean()
+            timestamp_avg_fv = matching_timestamp_list["Forward-velocity"].mean()
+            timestamp_avg_av = matching_timestamp_list["Angular-velocity"].mean()
             timestamp_avg_data = [timestamp[i], timestamp_avg_fv, timestamp_avg_av]
             filtered_data.append(timestamp_avg_data)
         else:
             # go to next timestamp, indexed point should already have been accounted for
             pass  
         
-    csv_filename = 'Cleaned_Robot1_Odometry.csv'
+    csv_filename = 'Cleaned_Robot2_Odometry.csv'
     print("Beginning transfer")
-    fieldnames = ["# Time [s]","forward velocity [m/s]","angular velocity[rad/s]"]
+    fieldnames = ["Time","Forward-velocity","Angular-velocity"]
     with open(csv_filename, mode='w') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writeheader()
@@ -46,8 +46,8 @@ def clean_odometry():
 def clean_measurement():
     # robots are subjects 1-5, landmarks are subjects 16-20. Robot 1 is subject 1 (barcode 5)   
     # barcodes to ignore: 5, 14, 41, 32, 23
-    filepath = "/Users/Erina/e205labs/fastslam1/fastslam1/data/"
-    filename = "Robot1_Measurement"
+    filepath = "./data/"
+    filename = "Robot2_Measurement"
 
     data = pd.read_csv(filepath + filename + '.csv')
     # sort by time and barcode to simplify iteration process
@@ -105,7 +105,7 @@ def clean_measurement():
             # go to next timestamp, indexed point should already have been accounted for
             pass
 
-    csv_filename = 'Cleaned_Robot1_Measurement.csv'
+    csv_filename = 'Cleaned_Robot2_Measurement.csv'
     fieldnames = ["Time", "Subject", "Range", "Bearing"]
     with open(csv_filename, mode='w') as csv_file:
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -116,9 +116,9 @@ def clean_measurement():
 
 def clean_robot_groundtruth():
     # filepath = "/Users/Erina/e205labs/fastslam1/fastslam1/data/"
-    # filename = "Robot1_Groundtruth"
+    # filename = "Robot2_Groundtruth"
 
-    filepath = "./data/Robot1_Groundtruth.csv"
+    filepath = "./data/Robot2_Groundtruth.csv"
 
     #data = pd.read_csv(filepath + filename + '.csv')
     data = pd.read_csv(filepath)
@@ -149,7 +149,7 @@ def clean_robot_groundtruth():
             # go to next timestamp, indexed point should already have been accounted for
             pass  
         
-    csv_filename = 'Cleaned_Robot1_Groundtruth.csv'
+    csv_filename = 'Cleaned_Robot2_Groundtruth.csv'
     print("Beginning transfer")
     fieldnames = ["Time","X","Y","Orientation"]
     with open(csv_filename, mode='w') as csv_file:
@@ -159,6 +159,6 @@ def clean_robot_groundtruth():
             writer.writerow({fieldnames[0]: i[0], fieldnames[1]: i[1], fieldnames[2]: i[2], fieldnames[3]: i[3]})
 
 if __name__ == "__main__":
-    # clean_odometry()
-    # clean_measurement()
+    clean_odometry()
+    clean_measurement()
     clean_robot_groundtruth()
