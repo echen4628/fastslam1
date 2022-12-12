@@ -4,8 +4,8 @@ import pdb
 from copy import deepcopy
 
 class Particle():
-    def __init__(self):
-        self.state = np.zeros(3)
+    def __init__(self, starting_state):
+        self.state = starting_state
         self.landmark = np.zeros((15,2))
         #[[1,2],
         #  [2,3]]
@@ -16,9 +16,9 @@ class Particle():
         #    [3,4]],
         #   [[]]]
 
-        self.set_x(3.5718479294117658)
-        self.set_y(-3.3314256499999995)
-        self.set_yaw(2.3551147058823525)
+        # self.set_x(3.5718479294117658)
+        # self.set_y(-3.3314256499999995)
+        # self.set_yaw(2.3551147058823525)
 
     def get_x(self):
         return self.state[0]
@@ -46,9 +46,9 @@ class Particle():
         #         ------------------------"
         
 class Fastslam():
-    def __init__(self, num_particles):
+    def __init__(self, num_particles, starting_state):
         self.num_particles = num_particles
-        self.particles = [Particle() for i in range(num_particles)]
+        self.particles = [Particle(deepcopy(starting_state)) for i in range(num_particles)]
         self.weights = np.ones(num_particles)*(1/num_particles)
         # self.next_particles = [Particle() for i in range(num_particles)]
         # self.next_weights = np.ones(num_particles)*(1/num_particles)
