@@ -148,7 +148,7 @@ class Fastslam():
                     z_diff[0,0] = measured_landmark_x - current_landmark[0]
                     z_diff[1,0] = measured_landmark_y - current_landmark[1] 
                     # find Modified_ measurement covariance H*Cov_landmark*H^T + Q <-identity.
-                    sensor_cov = np.identity(2)/10
+                    sensor_cov = np.identity(2)/2
                     # sensor_cov = np.zeros((2,2))
                     modified_measurement_cov = self.calc_measurement_cov(current_landmark_cov, sensor_cov)
                     # find w*

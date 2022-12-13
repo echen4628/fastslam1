@@ -1,19 +1,22 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.animation import FuncAnimation
-import matplotlib.animation as animation
+
 import Dataloader
 import FASTSlam
 import pdb
+import os
 from tqdm import tqdm
+from utils import *
+
+ROBOT_NUM = 2
 
 # load in the csv with pandas
-groundtruth_data = pd.read_csv("./data/Cleaned_Robot2_Groundtruth.csv")
+groundtruth_data = pd.read_csv(f"./data/Cleaned_Robot{ROBOT_NUM}_Groundtruth.csv")
 # landmark_data = pd.read_csv("./data/Landmark_Groundtruth copy.csv")
 landmark_data = pd.read_csv("./data/Landmark_Groundtruth copy.csv")
 
-odometry_data = pd.read_csv("./data/Cleaned_Robot2_Odometry.csv")
+odometry_data = pd.read_csv(f"./data/Cleaned_Robot{ROBOT_NUM}_Odometry.csv")
 groundtruth_x = groundtruth_data["X"]
 groundtruth_y = groundtruth_data["Y"]
 groundtruth_yaw = groundtruth_data["Orientation"]
@@ -37,8 +40,8 @@ landmark_cov = np.array(landmark_cov)
 
 # FastSlam
 starting_state = np.array([groundtruth_x[0], groundtruth_y[0], groundtruth_yaw[0]])
-filter = FASTSlam.Fastslam(30, starting_state)
-dataloader = Dataloader.Dataloader("./data/Cleaned_Robot2_Odometry.csv", "./data/Cleaned_Robot2_Measurement.csv", "./data/Cleaned_Robot2_Groundtruth.csv")
+filter = FASTSlam.Fastslam(2000, starting_state)
+dataloader = Dataloader.Dataloader(f"./data/Cleaned_Robot{ROBOT_NUM}_Odometry.csv", f"./data/Cleaned_Robot{ROBOT_NUM}_Measurement.csv", f"./data/Cleaned_Robot{ROBOT_NUM}_Groundtruth.csv")
 
 # resulting x list
 # resulitng y list
@@ -87,9 +90,6 @@ for i, landmark in enumerate(zip(final_landmark[:,0], final_landmark[:,1])):
     x, y = landmark
     static_ax.text(x, y, str(i+6), color="red", fontsize=12)
 
-# plt.show()
-# pdb.set_trace()
-
 # Plot RMS of robot position x, y
 rms_robot = []
 for i in range(len(combined_x)):
@@ -105,78 +105,7 @@ rms_ax.set_xlabel("time (s)")
 rms_ax.set_ylabel("path tracking error (m)")
 rms_fig.show()
 
-def animate_path(x_positions, y_positions, est_landmark_x, est_landmark_y):
-    groundtruth_data = pd.read_csv("./data/Cleaned_Robot2_Groundtruth.csv")
-    landmark_data = pd.read_csv("./data/Landmark_Groundtruth.csv")
-    groundtruth_x = groundtruth_data["X"]
-    groundtruth_y = groundtruth_data["Y"]
-    landmark_x = landmark_data["X"]
-    landmark_y = landmark_data["Y"]
+ani = animate_path(combined_x, combined_y, current_est_landmark_x, current_est_landmark_y, f"./data/Cleaned_Robot{ROBOT_NUM}_Groundtruth.csv", "./data/Landmark_Groundtruth.csv")
+# save_file(combined_x, "combined_x_1.txt")
+save_results(combined_x, combined_y, current_est_landmark_x, current_est_landmark_y, os.path.join("results", f"robot{ROBOT_NUM}"))
 
-    # figure
-    fig, ax = plt.subplots()
-    x_groundtruth_data, y_groundtruth_data = [], []
-    x_path_data, y_path_data = [], []
-    est_landmark_x_data, est_landmark_y_data = [], []
-    ln_groundtruth, = ax.plot([], [], 'ro')
-    ln_path, = ax.plot([], [], 'bo')
-    ln_est_landmark, = ax.plot([], [], 'go')
-
-    def init():
-        ax.set_xlim(-1, 6)
-        ax.set_ylim(-6, 6)
-        ax.set_xlabel("x position [m]")
-        ax.set_ylabel("y position [m]")
-        ax.scatter(groundtruth_x, groundtruth_y)
-        ax.scatter(landmark_x, landmark_y)
-        return ln_groundtruth, ln_path, ln_est_landmark
-
-    def update(frame):
-        x_groundtruth_data.append(groundtruth_x[frame + 10])
-        y_groundtruth_data.append(groundtruth_y[frame + 10])
-        ln_groundtruth.set_data(x_groundtruth_data, y_groundtruth_data)
-        x_path_data.append(x_positions[frame])
-        y_path_data.append(y_positions[frame])
-        # pdb.set_trace()
-        # est_landmark_x_data = est_landmark_x_data + est_landmark_x[frame].tolist()
-        # est_landmark_y_data = est_landmark_y_data + est_landmark_y[frame].tolist()
-        ln_path.set_data(x_path_data, y_path_data)
-        est_landmark_x_data = [est_landmark_x[frame]]
-        est_landmark_y_data = [est_landmark_y[frame]]
-        ln_est_landmark.set_data(est_landmark_x_data, est_landmark_y_data)
-        return ln_groundtruth, ln_path, ln_est_landmark
-
-    ani = FuncAnimation(fig, update, frames=np.arange(len(x_positions)),
-                    init_func=init, blit=True, interval = 10)
-    ax.legend(["Animated Groundtruth", "Animated Prediction Step"])
-    plt.show()
-
-    return ani
-
-# pdb.set_trace()
-ani = animate_path(combined_x, combined_y, current_est_landmark_x, current_est_landmark_y)
-# FFwrite = animation.PillowWriter(fps = 10)
-# ani.save("animation.gif")
-
-
-# # # example code
-# fig, ax = plt.subplots()
-# xdata, ydata = [], []
-# ln, = ax.plot([], [], 'ro')
-
-# def init():
-#     ax.set_xlim(-1, 6)
-#     ax.set_ylim(-6, 6)
-#     ax.scatter(groundtruth_x, groundtruth_y)
-#     ax.scatter(landmark_x, landmark_y)
-#     return ln,
-
-# def update(frame):
-#     xdata.append(combined_x[frame])
-#     ydata.append(combined_y[frame])
-#     ln.set_data(xdata, ydata)
-#     return ln,
-
-# ani = FuncAnimation(fig, update, frames=np.arange(1501),
-#                     init_func=init, blit=True, interval = 10)
-# plt.show()
