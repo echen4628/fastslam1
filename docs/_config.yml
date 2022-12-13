@@ -1,11 +1,18 @@
 # Configuration Options
-title: Example MicroPs Project Website
-author: "Prof. Josh Brake"
+title: FastSLAM 1.0 for MR.CLAM
+author: "Eric Chen and Erina Iwasa"
 theme: minima
 
 header-pages:
   - documentation.html
   - resources.html
+  - introduction.html
+  - data.html
+  - method.html
+  - experiment_and_results.html
+  - conclusion.html
+  - resources.html
+
 
 
 # Github Pages settings that cannot be changed
