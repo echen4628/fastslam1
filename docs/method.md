@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Method
+title: 3.Method
 permalink: /method/
 ---
 
