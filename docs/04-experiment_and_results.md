@@ -1,6 +1,6 @@
 ---
 layout: page
-title: 4.Experiments and Results
+title: Experiments and Results
 permalink: /experiment_and_results/
 ---
 

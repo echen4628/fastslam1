@@ -1,6 +1,6 @@
 ---
 layout: page
-title: 5.Conclusion
+title: Conclusion
 permalink: /conclusion/
 ---
 

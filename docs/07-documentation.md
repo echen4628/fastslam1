@@ -1,6 +1,6 @@
 ---
 layout: page
-title: 7.Documentation
+title: Documentation
 permalink: /doc/
 ---
 

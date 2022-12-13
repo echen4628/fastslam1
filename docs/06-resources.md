@@ -1,6 +1,6 @@
 ---
 layout: page
-title: 6.Resources
+title: Resources
 permalink: /resources/
 ---
 
