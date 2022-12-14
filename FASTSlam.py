@@ -66,7 +66,14 @@ class Fastslam():
 
     #     # self.next_particles will be updated
     #     pass
-    
+    def set_all_particle_state(self, state):
+        for particle in self.particles:
+            particle.state = deepcopy(state)
+            
+    def set_all_particle_landmark(self, landmarks):
+        for particle in self.particles:
+            particle.landmark = deepcopy(landmarks)
+        
     def wrap_to_pi(self, angle):
         """Wrap angle data in radians to [-pi, pi]
 
@@ -83,17 +90,31 @@ class Fastslam():
             angle += 2*math.pi
         return angle
     
-    def propagate_all_states(self, u_t_noiseless, dt):
+    def propagate_all_states(self, u_t_noiseless, dt, add_noise_first_boolean):
         # print("Entered propagate")
         # print(self.particles)
         # print(u_t_noiseless)
         for i in range(len(self.particles)):
-            self.particles[i].state = self.propogate_single_particle_state(self.particles[i].state, u_t_noiseless, dt)
-            x_t_var = np.array([0.1,0.1,0.05])
-            x_t_noise_x = np.random.normal(0, x_t_var[0])
-            x_t_noise_y = np.random.normal(0, x_t_var[1])
-            x_t_noise_z = np.random.normal(0, x_t_var[2])
-            self.particles[i].state += np.array([x_t_noise_x, x_t_noise_y, x_t_noise_z])
+            # self.particles[i].state = self.propogate_single_particle_state(self.particles[i].state, u_t_noiseless, dt)
+            # x_t_var = np.array([0.1,0.1,0.05])
+            # x_t_noise_x = np.random.normal(0, x_t_var[0])
+            # x_t_noise_y = np.random.normal(0, x_t_var[1])
+            # x_t_noise_z = np.random.normal(0, x_t_var[2])
+            # self.particles[i].state += np.array([x_t_noise_x, x_t_noise_y, x_t_noise_z])
+            if add_noise_first_boolean:
+                u_t_var = np.array([0.05, 0.05])
+                u_t_noise_v = u_t_noiseless[0] + np.random.normal(0, u_t_var[0])
+                u_t_noise_w = u_t_noiseless[1] + np.random.normal(0, u_t_var[1])
+                u_t_noise = np.array([u_t_noise_v, u_t_noise_w])
+                self.particles[i].state = self.propogate_single_particle_state(self.particles[i].state, u_t_noise, dt)
+            else:
+                self.particles[i].state = self.propogate_single_particle_state(self.particles[i].state, u_t_noiseless, dt)
+                x_t_var = np.array([0.1,0.1,0.05])
+                x_t_noise_x = np.random.normal(0, x_t_var[0])
+                x_t_noise_y = np.random.normal(0, x_t_var[1])
+                x_t_noise_z = np.random.normal(0, x_t_var[2])
+                self.particles[i].state += np.array([x_t_noise_x, x_t_noise_y, x_t_noise_z])
+
         # print(self.particles)
         # print(sum(self.weights))
 
@@ -139,8 +160,8 @@ class Fastslam():
                     # intialize landmark
                     print(f"initialize a new landmark {subject_tag}: ({measured_landmark_x}, {measured_landmark_y})")
                     # pdb.set_trace()
-                    p.landmark[subject_tag][0] = measured_landmark_x
-                    p.landmark[subject_tag][1] = measured_landmark_y
+                    p.landmark[subject_tag][0] = deepcopy(measured_landmark_x)
+                    p.landmark[subject_tag][1] = deepcopy(measured_landmark_y)
                 else:
                     # find difference between estimation/pred and measurement z - z hat
                     z_diff = np.zeros((2,1))
@@ -148,7 +169,7 @@ class Fastslam():
                     z_diff[0,0] = measured_landmark_x - current_landmark[0]
                     z_diff[1,0] = measured_landmark_y - current_landmark[1] 
                     # find Modified_ measurement covariance H*Cov_landmark*H^T + Q <-identity.
-                    sensor_cov = np.identity(2)/2
+                    sensor_cov = np.identity(2)/50
                     # sensor_cov = np.zeros((2,2))
                     modified_measurement_cov = self.calc_measurement_cov(current_landmark_cov, sensor_cov)
                     # find w*
@@ -158,9 +179,9 @@ class Fastslam():
                     # call the update function to update landmark of particle p
                     updated_landmark, updated_landmark_cov = self.update(modified_measurement_cov, current_landmark_cov, H_t, current_landmark, z_diff)
                     # pdb.set_trace()
-                    p.landmark[subject_tag] = updated_landmark
+                    p.landmark[subject_tag] = deepcopy(updated_landmark)
                     # pdb.set_trace()
-                    p.landmark_cov[subject_tag] = updated_landmark_cov
+                    p.landmark_cov[subject_tag] = deepcopy(updated_landmark_cov)
         
         self.weights = self.weights/(np.sum(self.weights))
 
@@ -246,12 +267,15 @@ class Fastslam():
 
         combined_state = np.zeros(3)
         combined_landmarks = np.zeros((15,2))
+        combined_landmarks_cov = np.zeros((15,2,2))
         for i in range(len(self.weights)):
             combined_state = combined_state + self.weights[i]*self.particles[i].state
             # combined_state[0] += self.particles[i].get_x()*self.weights[i]
             # combined_state[1] += self.particles[i].get_y()*self.weights[i]
             # combined_state[2] += self.particles[i].get_yaw()*self.weights[i]
             combined_landmarks = combined_landmarks + self.particles[i].landmark*self.weights[i]
+            # combined_landmarks_cov[i][0][0] = combined_landmarks_cov[i][0][0] + (self.particles[i].landmark_cov[i][0][0]*self.weights[i]
+            # combined_landmarks_cov[i][1][1] = combined_landmarks_cov[i][1][1] + self.particles[i].landmark_cov[i][1][1]*self.weights[i]
         # print(self.particles)
         # print(sum(self.weights))
 

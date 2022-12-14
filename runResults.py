@@ -40,6 +40,6 @@ def load_results(robot_num, experiment_num):
 # results = results.split("\n")[:-1]
 # results = [float(num) for num in results]
 # print(results)
-combined_x, combined_y, landmark_x, landmark_y = load_results(robot_num = 2, experiment_num = 2)
+combined_x, combined_y, landmark_x, landmark_y = load_results(robot_num = 2, experiment_num = 18)
 animate_path(combined_x, combined_y, landmark_x, landmark_y, f"./data/Cleaned_Robot{ROBOT_NUM}_Groundtruth.csv", "./data/Landmark_Groundtruth.csv")
 # print(landmark_x)

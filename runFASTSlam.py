@@ -40,7 +40,7 @@ landmark_cov = np.array(landmark_cov)
 
 # FastSlam
 starting_state = np.array([groundtruth_x[0], groundtruth_y[0], groundtruth_yaw[0]])
-filter = FASTSlam.Fastslam(2000, starting_state)
+filter = FASTSlam.Fastslam(100, starting_state)
 dataloader = Dataloader.Dataloader(f"./data/Cleaned_Robot{ROBOT_NUM}_Odometry.csv", f"./data/Cleaned_Robot{ROBOT_NUM}_Measurement.csv", f"./data/Cleaned_Robot{ROBOT_NUM}_Groundtruth.csv")
 
 # resulting x list
@@ -65,9 +65,15 @@ static_ax.set_ylabel("Y (m)")
 # pdb.set_trace()
 for i in tqdm(range(dataloader.len)):
     # print(i)
+    # if i == 500:
+    #     filter.set_all_particle_state(np.array([5,5,0]))
+        # fake_map = np.ones((15,2))*2
+        # filter.set_all_particle_landmark(fake_map)
+
+
     current_odometry, all_measurements = dataloader.get_next(0)
     u_t_noiseless = np.array([current_odometry["Forward-velocity"], current_odometry["Angular-velocity"]])
-    filter.propagate_all_states(u_t_noiseless, dt)
+    filter.propagate_all_states(u_t_noiseless, dt, True)
     # filter.set_position_to_groundtruth(np.array([groundtruth_x[i+10], groundtruth_y[i+10], groundtruth_yaw[i+10]]))
     # filter.set_landmark_to_groundtruth(landmark_pos, landmark_cov)
     # print(filter.particles[0].state)
@@ -104,6 +110,23 @@ rms_ax.set_title("Robot Path Tracking Error vs Time")
 rms_ax.set_xlabel("time (s)")
 rms_ax.set_ylabel("path tracking error (m)")
 rms_fig.show()
+
+
+# plot covariance for landmark 6 (generalize to all later)
+# cov_fig, cov_ax = plt.subplots(2, 1)
+# landmark6_xx_cov = 1 # get xx cov values
+# landmark6_yy_cov = 1 # get yy cov values
+
+
+# rms_landmark_fig, rms_landmark_ax = plt.subplots()
+# pdb.set_trace()
+rms_landmark = ((final_landmark[:,0] - np.array(landmark_x))**2 + (final_landmark[:,1] - np.array(landmark_y))**2)**(1/2)
+# rms_ax.plot(shifted_groundtruth_times, rms_landmark)
+# rms_ax.set_title("Mapping Error vs Time")
+# rms_ax.set_xlabel("time (s)")
+# rms_ax.set_ylabel("mapping error (m)")
+# rms_fig.show()
+print(rms_landmark)
 
 ani = animate_path(combined_x, combined_y, current_est_landmark_x, current_est_landmark_y, f"./data/Cleaned_Robot{ROBOT_NUM}_Groundtruth.csv", "./data/Landmark_Groundtruth.csv")
 # save_file(combined_x, "combined_x_1.txt")
