@@ -274,12 +274,12 @@ class Fastslam():
             # combined_state[1] += self.particles[i].get_y()*self.weights[i]
             # combined_state[2] += self.particles[i].get_yaw()*self.weights[i]
             combined_landmarks = combined_landmarks + self.particles[i].landmark*self.weights[i]
-            # combined_landmarks_cov[i][0][0] = combined_landmarks_cov[i][0][0] + (self.particles[i].landmark_cov[i][0][0]*self.weights[i]
-            # combined_landmarks_cov[i][1][1] = combined_landmarks_cov[i][1][1] + self.particles[i].landmark_cov[i][1][1]*self.weights[i]
+            combined_landmarks_cov = combined_landmarks_cov + (self.particles[i].landmark_cov)**2 *self.weights[i]
+        combined_landmarks_cov = combined_landmarks_cov**(1/2)
         # print(self.particles)
         # print(sum(self.weights))
 
-        return combined_state, combined_landmarks
+        return combined_state, combined_landmarks, combined_landmarks_cov
 
     def resample(self):
         # return

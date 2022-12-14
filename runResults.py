@@ -34,12 +34,14 @@ def load_results(robot_num, experiment_num):
     combined_y = read_file(os.path.join("results", f"robot{robot_num}", str(experiment_num), "combined_y.txt"), "robot")
     landmark_x = read_landmark(os.path.join("results", f"robot{robot_num}", str(experiment_num), "landmark_x.txt"))
     landmark_y = read_landmark(os.path.join("results", f"robot{robot_num}", str(experiment_num), "landmark_y.txt"))
-    return combined_x, combined_y, landmark_x, landmark_y
+    landmark_cov = np.load(os.path.join("results", f"robot{robot_num}", str(experiment_num), "landmark_cov.npy"))
+    return combined_x, combined_y, landmark_x, landmark_y, landmark_cov
 
 # results = read_file(os.path.join("results", f"robot{ROBOT_NUM}", "2", "combined_x.txt"))
 # results = results.split("\n")[:-1]
 # results = [float(num) for num in results]
 # print(results)
-combined_x, combined_y, landmark_x, landmark_y = load_results(robot_num = 2, experiment_num = 18)
+combined_x, combined_y, landmark_x, landmark_y, landmark_cov = load_results(robot_num = 2, experiment_num = 24)
 animate_path(combined_x, combined_y, landmark_x, landmark_y, f"./data/Cleaned_Robot{ROBOT_NUM}_Groundtruth.csv", "./data/Landmark_Groundtruth.csv")
-# print(landmark_x)
+# print(landmark_cov[-1])
+# print(landmark_cov[-1].shape)

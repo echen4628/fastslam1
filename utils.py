@@ -57,7 +57,7 @@ def save_file(data, file_name):
             f.write(f"{num}\n")
     print(f"sucessfully wrote to {saving_path}")
 
-def save_results(combined_x, combined_y, current_est_landmark_x, current_est_landmark_y, base_path=os.path.join("results", "robot1")):
+def save_results(combined_x, combined_y, current_est_landmark_x, current_est_landmark_y, landmark_cov, base_path=os.path.join("results", "robot1")):
     result_files = os.listdir(base_path)
     result_files = [int(f) for f in result_files]
     if len(result_files) == 0:
@@ -69,3 +69,4 @@ def save_results(combined_x, combined_y, current_est_landmark_x, current_est_lan
     save_file(combined_y, os.path.join(base_path, str(new_experiment_num), "combined_y.txt"))
     save_file(current_est_landmark_x, os.path.join(base_path, str(new_experiment_num), "landmark_x.txt"))
     save_file(current_est_landmark_y, os.path.join(base_path, str(new_experiment_num), "landmark_y.txt"))
+    np.save(os.path.join(base_path, str(new_experiment_num), "landmark_cov.npy"), np.array(landmark_cov))
