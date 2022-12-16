@@ -5,7 +5,7 @@ permalink: /data/
 ---
 
 # Data Source
-We are using the Multi-robot Cooperative Localization and Mapping [2] dataset collected by Leung et. al at the University of Toronto Institute for Aerospace Studies. The dataset consists of nine sub-datasets, which differ in experimental runtime and setup. Data was produced using 5 moving robots and 15 static landmarks, which were each assigned a unique barcode. 
+We are using the Multi-robot Cooperative Localization and Mapping [3] dataset collected by Leung et. al at the University of Toronto Institute for Aerospace Studies. The dataset consists of nine sub-datasets, which differ in experimental runtime and setup. Data was produced using 5 moving robots and 15 static landmarks, which were each assigned a unique barcode. 
 
 <br>
 <div>
@@ -17,6 +17,16 @@ We are using the Multi-robot Cooperative Localization and Mapping [2] dataset co
 <br>
 During each experiment, the robots drive to random waypoints in the workspace, logging their odometry at a frequency of 1 Hz. Whenever another robot or landmark is in its field of view, a robot records a range and bearing measurement. The robots are also capable of logging multiple measurements at the same time in the event that more than one object is in view. In addition, groundtruth data for all robot and landmark positions is simultaneously recorded using an external 10-camera Vicon motion capture system.
 
+For our experiment, we used MR.CLAM Dataset 1, focusing on Robot 2. Our data files (original and cleaned) can be found [here](https://github.com/echen4628/fastslam1/tree/main/data).
+
+<br>
+<div>
+  <img src="https://echen4628.github.io/fastslam1/assets/img/data_collection.png" alt="Data Collection" width="400" />
+</div>
+
+###### <b>Fig. 2</b> Example of barcode detection
+
+<br>
 <br>
 # Data Description
 In each sub-dataset, there are seventeen text files. The following table summarizes the five types of files and their respective fields:
@@ -94,28 +104,28 @@ The landmark groundtruth file contains the average Vicon x and y position measur
 
 
 #### <u>Robot Groundtruth</u>
-There are five robot groundtruth files, with each filename corresponding to a robot's subject number. Each robot's groundtruth file contains timestamped robot position information (x,y,θ). This data is useful for measuring our algorithm's localization performance.
+There are five robot groundtruth files, with each filename corresponding to a robot's subject number. Each robot's groundtruth file contains timestamped robot position information (x,y,$\theta$). This data is useful for measuring our algorithm's localization performance.
 
 
 <div>
-  <img src="https://echen4628.github.io/fastslam1/assets/img/Groundtruth.png" alt="Groundtruth" width="800" />
+  <img src="https://echen4628.github.io/fastslam1/assets/img/Groundtruth.png" alt="Groundtruth" width="700" />
 </div>
 
-###### <b>Fig. 2</b> Dataset 1's landmark groundtruth data (orange) and robot groundtruth data (green)
+###### <b>Fig. 3</b> Dataset 1's landmark groundtruth data (orange) and robot 2's groundtruth data (green)
 
 <br>
 
 #### <u>Robot Odometry</u>
-There are five robot odometry files, with each filename corresponding to a robot's subject number. Each robot's odometry file contains timestamped forward and angular velocity commands(v,ω). This data is used in our algorithm to propagate our particle states.
+There are five robot odometry files, with each filename corresponding to a robot's subject number. Each robot's odometry file contains timestamped forward and angular velocity commands($v$,$\omega$). This data is used in our algorithm to propagate our particle states.
 
 #### <u>Measurement Files</u>
-here are five measurement files, with each filename corresponding to a robot's subject number. As mentioned earlier, the measurement files contain timestamped range and bearing measurements (r,φ) to specific subjects. The range indicates a robot's recorded distance from a barcoded subject, and the bearing represents to angle between the robot's forward view and the subject. It is important to note that the bearing measurements are recorded with respect to the robot body's frame, which is depicted in Figure 2. The measurement data is used in our algorithm's reweight and update steps, which are explained in more detail in the <b>[Method](https://echen4628.github.io/fastslam1/method/)</b> section.
+here are five measurement files, with each filename corresponding to a robot's subject number. As mentioned earlier, the measurement files contain timestamped range and bearing measurements ($r$,$\phi$) to specific subjects. The range indicates a robot's recorded distance from a barcoded subject, and the bearing represents to angle between the robot's forward view and the subject. It is important to note that the bearing measurements are recorded with respect to the robot body's frame, which is depicted in Figure 2. The measurement data is used in our algorithm's reweight and update steps, which are explained in more detail in the <b>[Method](https://echen4628.github.io/fastslam1/method/)</b> section.
 
 <div>
   <img src="https://echen4628.github.io/fastslam1/assets/img/Bearing_Frames.png" alt="Bearing Frames" width="400" />
 </div>
 
-###### <b>Fig. 3</b> Robot frame vs inertial frame, where θ is the robot's yaw 
+###### <b>Fig. 4</b> Robot frame vs inertial frame, where $\theta$ is the robot's yaw 
 
 <br>
 
@@ -124,7 +134,7 @@ Before we started our algorithm, we decided to clean the odometry, measurement, 
 
 (1) Many timestamps had multiple sets of data for the same subject, resulting in significantly more lines of data than timestamps. For example, for 1491 timestamps, Robot 1's original odometry file contained 97890 entries.
 
-(2) For our algorithm, we were interested in a single robot's ability to map the static landmarks and its own position. As a result, we chose not to use the measurement data that corresponded to other robots.
+(2) For our algorithm, we were interested in a single robot's ability to map the static landmarks and its own position. This is because FastSLAM 1.0 works in static scenarios. As a result, we chose not to use the measurement data that corresponded to other robots.
 
 A general overview of how we cleaned the data is described below. The data was saved as new files to preserve the original data and verify the cleaned data's accuracy. 
 
