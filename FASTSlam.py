@@ -282,31 +282,14 @@ class Fastslam():
         return combined_state, combined_landmarks, combined_landmarks_cov
 
     def resample(self):
-        # return
-        # pdb.set_trace()
-        # print("Entered resample")
-        # print(self.particles)
-        # get current weights
         rng = np.random.default_rng()
         selected_indices = rng.choice(np.arange(self.num_particles), self.num_particles, p=self.weights)
-        # print(selected_indices)
-        # print(self.weights)
         # resample from self.next_particles and then reassign self.particles
         self.weights = self.weights[selected_indices]
-        # new_weights = []
         new_particles = [0 for i in range(len(selected_indices))]
         for i in range(len(selected_indices)):
-            # new_particles.append(self.particles[selected_indices[i]])
             new_particles[i] = deepcopy(self.particles[selected_indices[i]])
-            # new_weights.append(self.weights[selected_indices[i]])
-            # if new_particles[i] != self.particles[i]:
-            #     print(new_particles[i])
-            #     print(self.particles[i])
-            #     print("-----------------------")
         self.particles = new_particles
-        # self.weights = new_weights
-        # print(self.particles)
-        # self.particles = [self.particles[i] for i in selected_indices]
     
     def set_landmark_to_groundtruth(self, positions, covariance):
         for particle in self.particles:

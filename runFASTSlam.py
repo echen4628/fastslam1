@@ -14,7 +14,7 @@ ROBOT_NUM = 2
 # load in the csv with pandas
 groundtruth_data = pd.read_csv(f"./data/Cleaned_Robot{ROBOT_NUM}_Groundtruth.csv")
 # landmark_data = pd.read_csv("./data/Landmark_Groundtruth copy.csv")
-landmark_data = pd.read_csv("./data/Landmark_Groundtruth copy.csv")
+landmark_data = pd.read_csv("./data/Landmark_Groundtruth.csv")
 
 odometry_data = pd.read_csv(f"./data/Cleaned_Robot{ROBOT_NUM}_Odometry.csv")
 groundtruth_x = groundtruth_data["X"]
@@ -72,15 +72,18 @@ for i in tqdm(range(dataloader.len)):
         # filter.set_all_particle_landmark(fake_map)
 
     current_odometry, all_measurements = dataloader.get_next(0)
+    # print(all_measurements)
+    # pdb.set_trace()
     u_t_noiseless = np.array([current_odometry["Forward-velocity"], current_odometry["Angular-velocity"]])
     filter.propagate_all_states(u_t_noiseless, dt, True)
     # filter.set_position_to_groundtruth(np.array([groundtruth_x[i+10], groundtruth_y[i+10], groundtruth_yaw[i+10]]))
-    # filter.set_landmark_to_groundtruth(landmark_pos, landmark_cov)
+    filter.set_landmark_to_groundtruth(landmark_pos, landmark_cov)
     # print(filter.particles[0].state)
     filter.reweight_and_update(all_measurements)
     combined_state, combined_landmark, combined_landmark_cov = filter.combine_particles()
     # print(filter.particles)
-    filter.resample()
+    if all_measurements != []:
+        filter.resample()
     # print(filter.particles)
     static_ax.scatter(combined_state[0], combined_state[1], c="g")
 
