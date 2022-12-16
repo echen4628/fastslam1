@@ -72,7 +72,6 @@ where $j$ is the landmark index, $z_j$ is the measured landmark (which has alrea
 $\begin{equation}
 Q_j = H_t \overline{\Sigma}_{L,j,t} H_t^T + \Sigma_{z,t}
 \end{equation}$
-
 where $H_t$ is the sensor model uncertainty (which we set to be the identity matrix because the entirety of the landmark position can be measured), $\overline{\Sigma}_{L,t}$ is the landmark covariance, and $\Sigma_{z,t}$ is the sensor covariance. After each particle's new weight is calculated, they are normalized so that the total particle weight equals 1. 
 
 The landmarks measurements are also used to update each landmark's position by an EKF style update step.
