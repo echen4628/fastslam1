@@ -10,7 +10,7 @@ exclude: true
 </div>
 
 <div>
-</form><form action="https://github.com/echen4628/fastslam1" style="display: inline;">
+<form action="https://github.com/echen4628/fastslam1" style="display: inline;">
     <input type="submit" style="text-align:center; font-size:1.5em ; color:white; background-color:black;display: inline;" value="Check out our Github" />
 </form>
 </div>
