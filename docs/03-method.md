@@ -21,9 +21,11 @@ The $\texttt{propagate\_all\_states}$ function implements the prediction step of
 $\begin{equation}
 x_t = x_{t-1} + v_t * cos(\theta)*\Delta t 
 \end{equation}$
+
 $\begin{equation}
 y_t = y_{t-1} + v_t * sin(\theta)*\Delta t 
 \end{equation}$
+
 $\begin{equation}
 \theta_t = \theta_{t-1} + \omega_t *\Delta t 
 \end{equation}$
