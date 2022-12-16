@@ -3,18 +3,37 @@ layout: page
 title: Method
 permalink: /method/
 ---
-SLAM algorithms are a good choice for our task of localizing a robot within an unknown environment. For our project, we choose to use the FastSLAM algorithm. FastSLAM was developed by _____ (cite) and it showed promising results
+Simultaneous Localization and Mapping (SLAM) algorithms fuse various sensor readings to track an agent’s location and map its surroundings. They are perfect for our goal of localizing a robot in an unknown environment of the MR.CLAM dataset. While there are many SLAM algorithms, we choose to use FastSLAM 1.0 because it fits our problem well and combines familiar algorithms in creative ways. Note that although FastSLAM 1.0 is just one algorithm in a family of FastSLAM algorithms, we will use the term FastSLAM 1.0 and FastSLAM interchangeably. 
 
+Obstacles in the MR.CLAM dataset are stationary and tagged by a barcode. Therefore, FastSLAM 1.0, which is a landmark based SLAM, is perfect for the task. We also considered another landmark based SLAM - the Extended Kalman Filter SLAM (EKF SLAM). However, FastSLAM 1.0 was chosen due to its improve efficiency. The creater of FastSLAM Michael Montemerlo designed FastSLAM as a response to the EKF SLAM's time consuming sensor update step. The EKF SLAM inverts several large covariance matrices, causing its time complexity to be $O(K^2)$, where $K$ represents the number of landmarks. In contrast, the time complexity of FastSLAM 1.0 can be as low as $O(M log K)$, where $M$ and $K$ represent the number of particles and landmarks respectively. Our implementation has a time complexity of $O(M*K)$. 
 
-One relatively successful SLAM algorithm is FastSLAM
+We also chose FastSLAM 1.0 due to its technical ingenuity. FastSLAM draws inpirations from the Particle Filter and the Extended Kalman Filter. Implementing FastSLAM allows us to review and utilize a large portion of E205's material. Since we are more familiar with the components of FastSLAM than many other SLAM algorithms, we have more freedom to make design decisions. 
 
-Our goal of mapping an environment using a robot and tracking the position of the robot simultanously leads us 
+Our implementation of FastSLAM can be found [here](https://github.com/echen4628/fastslam1/blob/main/FASTSlam.py) in the $\texttt{FASTSlam.py}$ file. Like the original algorithm outlined in "FastSLAM: A Factored Solution to the Simultaneous Localization and Mapping Problem" by Michael Montemerlo et al., our implementation has two main components - the $\texttt{Particle}$ and $\texttt{FastSLAM}$ classes. 
 
-# FastSLAM
+The $\texttt{Particle}$ class encodes a single FastSLAM particle. In FastSLAM, each particle contains an extimated state of the robot in the global frame. The state vector $X$ of a robot in the MR.CLAM dataset is [$x$, $y$, $\theta$], representing the x,y coordinate of the robot and its angle. Unlike a particle in a Particle Filter, FastSLAM particles also record estimated landmark positions and covariances. Each landmark state vector $L$ is represented by [$x$, $y$]. Each landmark covariance, $\texttt{landmark\_cov}$, is a typical 2X2 matrix representing the covariance in the corresponding landmark state. These covariance matrices will be used later in an EKF style update step. On initialization, the robot state is set to be the groundtruth starting pose and the landmark covariance to the identity. Landmark positions are initialized later in the sensor update stage of the FastSLAM algorithm. Unlike the typical FastSLAM particle, our particles do not carry a weight. We include the particle weight in the $\texttt{Fastslam}$ class for direct access and avoid an unnecessary loop to collect weights from each particle when needed. 
 
+The $\texttt{Fastslam}$ class implements are the remaining parts of the FastSLAM algorithm. It keeps track of the number of particles, a list of particles, and the weights for each particle. It includes four main functions: 1. $\texttt{propagate\_all\_states}$, 2. $\texttt{reweight\_and\_update}$, 3. $\texttt{combine\_particles}$, and 4. $\texttt{resample}$.
 
+## $\texttt{propagate\_all\_states}$
+The $\texttt{propagate\_all\_states}$ function implements the prediction step of FastSLAM. Its arguments are the inputs to the robot, time difference between inputs, and a boolean indicating whether noise will be added to the system before progating or after. As mentioned in the Data section, the MR.CLAM dataset provides each robot’s forward velocity $v$ and angular velocity $\omega$. We update each particle’s robot state according to the following motion model.
 
-As the name suggests, SLAM is a category of algorithms that allows an agent to track its position and map its surroundings simulaneous. Popular localization methods such as the Kalman filter and the particle filter have two stages. A prediction step and a correction step. During the prediction step, sensor measurements ... explain how mapping is similar ... explain that slam does both at the same time by do each step one after the other.
+$\begin{equation}
+x_t = x_{t-1} + v_t * cos(\theta)*\Delta t 
+\end{equation}$
+$\begin{equation}
+y_t = y_{t-1} + v_t * sin(\theta)*\Delta t 
+\end{equation}$
+$\begin{equation}
+\theta_t = \theta_{t-1} + \omega_t *\Delta t 
+\end{equation}$
 
-# FastSLAM
+If noise is to be added before motion model propagation, then gaussian noise centered around 0 is added to $v_t$ and $\omega_t$ first. Otherwise, gaussian noise centered around 0 is added to $x_t$, $y_t$, and $\theta_t$. 
 
+## $\texttt{reweight\_and\_update}$
+The next stage of the algorithm is reweight and update. The $\texttt{reweight\_and\_update}$ function takes in the measured range $r$ and bearing $\phi$ to all observed landmarks. The function loops through each particle and then loops through the measurements for each landmark to reweight the particle and update the associated landmark position. For particles that have never seen the landmark before now, we simply initialize the landmark according to the measurement without changing the particle weight. The correction step is also not needed for this landmark. Because the measurements are $r$ and $\phi$, we need 
+
+The landmark measurements are translated into the global frame by the following equations.
+	Lxt = xt + r*cos(phi + theta)
+	Lyt = yt + r*sin(phi + theta)
+If the landmark has been observed previously (in other words, each particle carries an estimation of the landmark’s position), then the measurement to this landmark will be used for reweighting the particle and to update the landmark position. We reweight each particle by the following equation,
