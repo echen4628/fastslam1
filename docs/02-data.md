@@ -21,7 +21,7 @@ For our experiment, we used MR.CLAM Dataset 1, focusing on Robot 2. Our data fil
 
 <br>
 <div>
-  <img src="https://echen4628.github.io/fastslam1/assets/img/data_collection.png" alt="Data Collection" width="400" />
+  <img src="https://echen4628.github.io/fastslam1/assets/img/Data_Collection.png" alt="Data Collection" width="400" />
 </div>
 
 ###### <b>Fig. 2</b> Example of barcode detection
