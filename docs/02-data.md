@@ -6,19 +6,18 @@ permalink: /data/
 
 # Data Source
 We are using the Multi-robot Cooperative Localization and Mapping [2] dataset collected by Leung et. al at the University of Toronto Institute for Aerospace Studies. The dataset consists of nine sub-datasets, which differ in experimental runtime and setup. Data was produced using 5 moving robots and 15 static landmarks, which were each assigned a unique barcode. 
+
 <br>
 <div>
-  <img src="https://echen4628.github.io/fastslam1/assets/img/Robot_and_Landmarks.png" alt="Robots and Landmarks" width="300" />
+  <img src="https://echen4628.github.io/fastslam1/assets/img/Robot_and_Landmarks.png" alt="Robots and Landmarks" width="400" />
 </div>
 
 ###### <b>Fig. 1</b> Robots and landmarks used in the making of the dataset
 
 <br>
-
 During each experiment, the robots drive to random waypoints in the workspace, logging their odometry at a frequency of 1 Hz. Whenever another robot or landmark is in its field of view, a robot records a range and bearing measurement. The robots are also capable of logging multiple measurements at the same time in the event that more than one object is in view. In addition, groundtruth data for all robot and landmark positions is simultaneously recorded using an external 10-camera Vicon motion capture system.
 
 <br>
- 
 # Data Description
 In each sub-dataset, there are seventeen text files. The following table summarizes the five types of files and their respective fields:
 <br>
@@ -86,25 +85,24 @@ In each sub-dataset, there are seventeen text files. The following table summari
   </tr>
 </tbody>
 </table>
-<br>
 
-### <u>Barcode Identification</u>
+#### <u>Barcode Identification</u>
 It is important to note that subject numbers and barcode numbers are different. Robots are assigned a subject number from 1-5 and landmarks are assigned a subject number from 6-20. The barcode numbers are more random, as each barcode encodes two digits that and ranges from 5 to 90. The two digits sum sum to five for a robot's barcode, and seven or nine for a landmark's barcode. This was done in order to mitigate the risk of misreading a barcode. By using the barcode identification file's information, we are able to convert the barcode numbers recorded in the measurement files to subject numbers. 
 
-### <u>Landmark Groundtruth</u>
+#### <u>Landmark Groundtruth</u>
 The landmark groundtruth file contains the average Vicon x and y position measurements of all landmarks. It also contains the standard deviations for each measurement. This data is useful for measuring our algorithm's mapping performance.
 
-### <u>Robot Groundtruth</u>
+#### <u>Robot Groundtruth</u>
 There are five robot groundtruth files, with each filename corresponding to a robot's subject number. Each robot's groundtruth file contains timestamped robot position information (x,y,θ). This data is useful for measuring our algorithm's localization performance.
 
-### <u>Robot Odometry</u>
+#### <u>Robot Odometry</u>
 There are five robot odometry files, with each filename corresponding to a robot's subject number. Each robot's odometry file contains timestamped forward and angular velocity commands(v,ω). This data is used in our algorithm to propagate our particle states.
 
-### <u>Measurement Files</u>
-here are five measurement files, with each filename corresponding to a robot's subject number. As mentioned earlier, the measurement files contain timestamped range and bearing measurements (r,φ) to specific subjects. The range indicates a robot's recorded distance from a barcoded subject, and the bearing represents to angle between the robot's forward view and the subject. It is important to note that the bearing measurements are recorded with respect to the robot body's frame, which is depicted in Figure 2. The measurement data is used in our algorithm's reweight and update steps, which are explained in more detail in the <b>Methods</b> section.
+#### <u>Measurement Files</u>
+here are five measurement files, with each filename corresponding to a robot's subject number. As mentioned earlier, the measurement files contain timestamped range and bearing measurements (r,φ) to specific subjects. The range indicates a robot's recorded distance from a barcoded subject, and the bearing represents to angle between the robot's forward view and the subject. It is important to note that the bearing measurements are recorded with respect to the robot body's frame, which is depicted in Figure 2. The measurement data is used in our algorithm's reweight and update steps, which are explained in more detail in the <b>[Method](https://echen4628.github.io/fastslam1/method/)</b> section.
 
 <div>
-  <img src="https://echen4628.github.io/fastslam1/assets/img/Bearing_Frames.png" alt="Bearing Frames" width="300" />
+  <img src="https://echen4628.github.io/fastslam1/assets/img/Bearing_Frames.png" alt="Bearing Frames" width="400" />
 </div>
 
 ###### <b>Fig. 2</b> Robot frame vs inertial frame, where θ is the robot's yaw 
@@ -120,8 +118,8 @@ Before we started our algorithm, we decided to clean the odometry, measurement, 
 
 A general overview of how we cleaned the data is described below. The data was saved as new files to preserve the original data and verify the cleaned data's accuracy. 
 
-### <u>Cleaning the Odometry and Groundtruth Files</u>
+#### <u>Cleaning the Odometry and Groundtruth Files</u>
 To clean the data, we looped through each file and averaged any data that shared the same timestamp. For example, if a single timestamp had three sets of data in the odometry file, we would return a single line containing the timestamp, average forward velocity, and average angular velocity.
 
-### <u>Cleaning the Measurement Files</u>
+#### <u>Cleaning the Measurement Files</u>
 We looped through each file and averaged any data that shared the same timestamp and barcode number. In addition, we removed any data that had a barcode number corresponding to a robot subject. Finally, using the barcode identification file, we converted the barcode numbers to their respective subject numbers for ease of future testing.

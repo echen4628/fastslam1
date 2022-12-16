@@ -41,7 +41,7 @@ def load_results(robot_num, experiment_num):
 # results = results.split("\n")[:-1]
 # results = [float(num) for num in results]
 # print(results)
-combined_x, combined_y, landmark_x, landmark_y, landmark_cov = load_results(robot_num = 2, experiment_num = 25)
+combined_x, combined_y, landmark_x, landmark_y, landmark_cov = load_results(robot_num = 2, experiment_num = 43) #25
 animate_path(combined_x, combined_y, landmark_x, landmark_y, f"./data/Cleaned_Robot{ROBOT_NUM}_Groundtruth.csv", "./data/Landmark_Groundtruth.csv")
 
 # load in the csv with pandas
@@ -95,15 +95,17 @@ static_ax.scatter(groundtruth_landmark_x, groundtruth_landmark_y, color="orange"
 for i, landmark in enumerate(zip(groundtruth_landmark_x, groundtruth_landmark_y)):
     x, y = landmark
     static_ax.text(x, y, str(i+6), color="red", fontsize=12)
-    plot_cov_at_point_t(i, groundtruth_landmark_cov, groundtruth_landmark_x, groundtruth_landmark_y, static_ax, 3)
-
 
 static_ax.scatter(landmark_x_np, landmark_y_np, color="purple")
 for i, landmark in enumerate(zip(landmark_x_np, landmark_y_np)):
     x, y = landmark
     static_ax.text(x, y, str(i+6), color="red", fontsize=12)
-    plot_cov_at_point_t(i, landmark_cov[-1], landmark_x_np, landmark_y_np, static_ax, 3)
 
+for i, landmark in enumerate(zip(groundtruth_landmark_x, groundtruth_landmark_y)):
+    plot_cov_at_point_t(i, groundtruth_landmark_cov, groundtruth_landmark_x, groundtruth_landmark_y, static_ax, 3)
+
+for i, landmark in enumerate(zip(landmark_x_np, landmark_y_np)):
+    plot_cov_at_point_t(i, landmark_cov[-1], landmark_x_np, landmark_y_np, static_ax, 3)
 
 # plot_cov_at_point_t(0, landmark_cov, landmark_x_np, landmark_y_np, static_ax, 3)
 # static_ax = plot_cov_at_point_t(0, landmark_cov, landmark_x_np, landmark_y_np, static_ax)

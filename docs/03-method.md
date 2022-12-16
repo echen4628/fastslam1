@@ -17,7 +17,7 @@ The $\texttt{Particle}$ class encodes a single FastSLAM particle. In FastSLAM, e
 
 
 <div>
-  <img src="https://echen4628.github.io/fastslam1/assets/img/System_Block_Diagram.png" alt="System Block Diagram" width="400" />
+  <img src="https://echen4628.github.io/fastslam1/assets/img/System_Block_Diagram.png" alt="System Block Diagram" width="1000" />
 </div>
 ###### <b>Fig. 1</b> Block diagram with inputs and outputs describing the FastSLAM algorithm.
 
@@ -71,7 +71,9 @@ where $j$ is the landmark index, $z_j$ is the measured landmark (which has alrea
 
 $\begin{equation}
 Q_j = H_t \overline{\Sigma}_{L,j,t} H_t^T + \Sigma_{z,t}
-\end{equation}$, where $H_t$ is the sensor model uncertainty (which we set to be the identity because the entirety of the landmark position can be measured), $\overline{\Sigma}_{L,t}$ is the landmark covariance, and $\Sigma_{z,t}$ is the sensor covariance. After each particle’s new weight is calculated, they are normalized so that the total particle weight equals 1. 
+\end{equation}$
+
+, where $H_t$ is the sensor model uncertainty (which we set to be the identity because the entirety of the landmark position can be measured), $\overline{\Sigma}_{L,t}$ is the landmark covariance, and $\Sigma_{z,t}$ is the sensor covariance. After each particle’s new weight is calculated, they are normalized so that the total particle weight equals 1. 
 
 The landmarks measurements are also used to update each landmark’s position by an EKF style update step.
 
