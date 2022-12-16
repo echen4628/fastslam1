@@ -92,8 +92,18 @@ It is important to note that subject numbers and barcode numbers are different. 
 #### <u>Landmark Groundtruth</u>
 The landmark groundtruth file contains the average Vicon x and y position measurements of all landmarks. It also contains the standard deviations for each measurement. This data is useful for measuring our algorithm's mapping performance.
 
+
 #### <u>Robot Groundtruth</u>
 There are five robot groundtruth files, with each filename corresponding to a robot's subject number. Each robot's groundtruth file contains timestamped robot position information (x,y,θ). This data is useful for measuring our algorithm's localization performance.
+
+
+<div>
+  <img src="https://echen4628.github.io/fastslam1/assets/img/Groundtruth.png" alt="Groundtruth" width="800" />
+</div>
+
+###### <b>Fig. 2</b> Dataset 1's landmark groundtruth data (orange) and robot groundtruth data (green)
+
+<br>
 
 #### <u>Robot Odometry</u>
 There are five robot odometry files, with each filename corresponding to a robot's subject number. Each robot's odometry file contains timestamped forward and angular velocity commands(v,ω). This data is used in our algorithm to propagate our particle states.
@@ -105,7 +115,7 @@ here are five measurement files, with each filename corresponding to a robot's s
   <img src="https://echen4628.github.io/fastslam1/assets/img/Bearing_Frames.png" alt="Bearing Frames" width="400" />
 </div>
 
-###### <b>Fig. 2</b> Robot frame vs inertial frame, where θ is the robot's yaw 
+###### <b>Fig. 3</b> Robot frame vs inertial frame, where θ is the robot's yaw 
 
 <br>
 

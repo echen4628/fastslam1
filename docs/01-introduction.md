@@ -6,11 +6,11 @@ permalink: /introduction/
 Welcome! This is the website for our E205 final project, FastSLAM 1.0 for MR.CLAM
 
 # Motivation
-SLAM is used situations where both the robot path and its environment are uncertain. For example, SLAM can be useful in locations with unreliable GPS information, such as underwater and underground environments. Through SLAM, we are able to simultaneously map the environment and track a robot's location. 
+Simultaneous Localization and Mapping (SLAM) is used situations where both the robot path and its environment are uncertain. For example, SLAM can be useful in locations with unreliable GPS information, such as underwater and underground environments. Through SLAM, we are able to simultaneously map the environment and track a robot's location. 
 
-FastSLAM 1.0 is a landmark based SLAM like the EKF SLAM we learned about in class, and it only works in non-dynamic scenes. [Some other stuff about FastSLAM]
+FastSLAM 1.0 is a landmark based SLAM like the EKF SLAM we learned about in class, and it only works in non-dynamic scenes.
 
-
+<br>
 # Problem Statement
 For our project, we aimed to localize a robot's position in unknown environment using FastSLAM 1.0.
 
@@ -31,19 +31,19 @@ We defined stated variables for both the robot and landmarks. Each particle has 
 A description of the variables being estimated is below:
 
 Robot States:
-$x$: Robot's x-position [m]
-$y$: Robot's y-position [m]
-$\theta$: Robot's yaw position [radians]
+$x$: Robot's x-position [m]<br>
+$y$: Robot's y-position [m]<br>
+$\theta$: Robot's yaw position [radians]<br>
 
 Landmark States (represented as a 2x1 matrix for individual landmarks):
-$L_x$: Landmark's x-position [m]
-$L_y$: Landmark's y-position [m]
+$L_x$: Landmark's x-position [m]<br>
+$L_y$: Landmark's y-position [m]<br>
 
 Landmark Covariance (represented as a 2x2 matrix for individual landmarks):
-$\sigma_{L_x}^2$: Landmark's xx covariance
-$\sigma_{L_x L_y}$: Landmark's xy covariance
-$\sigma_{L_y L_x}$: Landmark's yx covariance
-$\sigma_{L_y}^2$: Landmark's yy covariance
+$\sigma_{L_x}^2$: Landmark's xx covariance<br>
+$\sigma_{L_x L_y}$: Landmark's xy covariance<br>
+$\sigma_{L_y L_x}$: Landmark's yx covariance<br>
+$\sigma_{L_y}^2$: Landmark's yy covariance<br>
 
 #### <u>Intermediate Variables</u>
 The intermediate values used to compute the state variables are described in detail in the <b>[Method](https://echen4628.github.io/fastslam1/method/)</b> section.
