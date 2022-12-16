@@ -33,9 +33,29 @@ $\begin{equation}
 If noise is to be added before motion model propagation, then gaussian noise centered around 0 is added to $v_t$ and $\omega_t$ first. Otherwise, gaussian noise centered around 0 is added to $x_t$, $y_t$, and $\theta_t$. 
 
 ## $\texttt{reweight\_and\_update}$
-The next stage of the algorithm is reweight and update. The $\texttt{reweight\_and\_update}$ function takes in the measured range $r$ and bearing $\phi$ to all observed landmarks. The function loops through each particle and then loops through the measurements for each landmark to reweight the particle and update the associated landmark position. For particles that have never seen the landmark before now, we simply initialize the landmark according to the measurement without changing the particle weight. The correction step is also not needed for this landmark. Because the measurements are $r$ and $\phi$, we need 
+The next stage of the algorithm is reweight and update. The $\texttt{reweight\_and\_update}$ function takes in the measured range $r$ and bearing $\phi$ to all observed landmarks. The function loops through each particle and then loops through the measurements for each landmark to reweight the particle and update the associated landmark position. For particles that have never seen the landmark before now, we simply initialize the landmark according to the measurement without changing the particle weight. The correction step is also not needed for this landmark. Because the measurements are $r$ and $\phi$, we need translate them to landmark $L_x$ and $L_y$ positions using the following equations
 
-The landmark measurements are translated into the global frame by the following equations.
-	Lxt = xt + r*cos(phi + theta)
-	Lyt = yt + r*sin(phi + theta)
-If the landmark has been observed previously (in other words, each particle carries an estimation of the landmark’s position), then the measurement to this landmark will be used for reweighting the particle and to update the landmark position. We reweight each particle by the following equation,
+$\begin{equation}
+L_x = x_t + r*cos(\phi + \theta_t)
+\end{equation}$
+
+$\begin{equation}
+L_y = y_t + r*sin(\phi + \theta_t)
+\end{equation}$
+
+If the landmark has been observed previously (in other words, the particle already carries an estimation of the landmark’s position), then the measurement will be used for reweighting the particle and to update the landmark position. We reweight each particle by the using the following equations,
+
+$\begin{equation}
+p_w = \Pi_{j} w_j
+\end{equation}$
+
+$\begin{equation}
+w_j = 0 \text{ if landmark j is previously unobserved}
+\end{equation}$
+
+$\begin{equation}
+w_j =  |2\pi Q|^{-\frac{1}{2}} e^{-\frac{1}{2} (z_j - \hat{z}_j)^{T}Q^{-1}(z_j - \hat{z}_j)}  \text{ otherwise}
+\end{equation}$
+
+
+where $j$ is the landmark index, $z_j$ is the measured landmark (which has already been converted from $r$ and $\phi$ to $L$), $\hat{z}_j$ is the estimated landmark (which is obtained from the particle).

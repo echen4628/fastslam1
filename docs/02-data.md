@@ -5,12 +5,13 @@ permalink: /data/
 ---
 
 # Data Source
-We are using the Multi-robot Cooperative Localization and Mapping [citation here] dataset collected by Leung et. al at the University of Toronto Institute for Aerospace Studies. The dataset consists of nine sub-datasets, which differ in experimental runtime and setup. Data was produced using 5 moving robots and 15 static landmarks, which were each assigned a unique barcode. 
+We are using the Multi-robot Cooperative Localization and Mapping [2] dataset collected by Leung et. al at the University of Toronto Institute for Aerospace Studies. The dataset consists of nine sub-datasets, which differ in experimental runtime and setup. Data was produced using 5 moving robots and 15 static landmarks, which were each assigned a unique barcode. 
 <br>
 <div>
-  <img src="https://echen4628.github.io/fastslam1/assets/img/Robot_and_Landmarks.png" alt="Robots and Landmarks" width="100" />
+  <img src="https://echen4628.github.io/fastslam1/assets/img/Robot_and_Landmarks.png" alt="Robots and Landmarks" width="300" />
 </div>
-##### Fig. 1, Caption Here, Will upload photo at end
+
+###### <b>Fig. 1</b> Robots and landmarks used in the making of the dataset
 
 <br>
 
@@ -21,6 +22,7 @@ During each experiment, the robots drive to random waypoints in the workspace, l
 # Data Description
 In each sub-dataset, there are seventeen text files. The following table summarizes the five types of files and their respective fields:
 <br>
+###### <b>Table 1:</b> Sub-dataset files and fields
 <style type="text/css">
 .tg  {border-collapse:collapse;border-spacing:0;}
 .tg td{border-color:black;border-style:solid;border-width:1px;font-family:Arial, sans-serif;font-size:14px;
@@ -102,9 +104,10 @@ There are five robot odometry files, with each filename corresponding to a robot
 here are five measurement files, with each filename corresponding to a robot's subject number. As mentioned earlier, the measurement files contain timestamped range and bearing measurements (r,φ) to specific subjects. The range indicates a robot's recorded distance from a barcoded subject, and the bearing represents to angle between the robot's forward view and the subject. It is important to note that the bearing measurements are recorded with respect to the robot body's frame, which is depicted in Figure 2. The measurement data is used in our algorithm's reweight and update steps, which are explained in more detail in the <b>Methods</b> section.
 
 <div>
-  <img src="https://echen4628.github.io/fastslam1/assets/img/Bearing_Frames.png" alt="Bearing Frames" width="100" />
+  <img src="https://echen4628.github.io/fastslam1/assets/img/Bearing_Frames.png" alt="Bearing Frames" width="300" />
 </div>
-#### Fig. 2, Caption here
+
+###### <b>Fig. 2</b> Robot frame vs inertial frame, where θ is the robot's yaw 
 
 <br>
 
