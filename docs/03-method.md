@@ -69,9 +69,13 @@ w_j =  |2\pi Q_j|^{-\frac{1}{2}} e^{-\frac{1}{2} (z_j - \hat{z}_j)^{T}Q_j^{-1}(z
 
 where $j$ is the landmark index, $z_j$ is the measured landmark (which has already been converted from $r$ and $\phi$ to $L$), $\hat{z}_j$ is the estimated landmark (which is obtained from the particle), and $Q_j$ is the measurement uncertainty.
 
-$Q_{j} = H_{t} \overline{\Sigma}_{L,j,t} H_{t}^{T} + \Sigma_{z,t}$
+<div>
+  <img src="https://echen4628.github.io/fastslam1/assets/img/equation.png" alt="System Block Diagram" width="1000" />
+</div>
 
-$H_t$ is the sensor model uncertainty (which we set to be the identity matrix because the entirety of the landmark position can be measured), $\overline{\Sigma}_{L,j,t}$ is the landmark covariance, and $\Sigma_{z,t}$ is the sensor covariance. After each particle's new weight is calculated, they are normalized so that the total particle weight equals 1. 
+<!-- $Q_{j} = H_{t} \overline{\Sigma}_{L,j,t} H_{t}^{T} + \Sigma_{z,t}$ -->
+
+$H_t$ is the sensor model uncertainty (which we set to be the identity matrix because the entirety of the landmark position can be measured), $\overline{\Sigma}_{L}$ is the landmark covariance, and $\Sigma_{z,t}$ is the sensor covariance. After each particle's new weight is calculated, they are normalized so that the total particle weight equals 1. 
 
 The landmarks measurements are also used to update each landmark's position by an EKF style update step.
 
