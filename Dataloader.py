@@ -24,7 +24,7 @@ class Dataloader():
         self.odometry_idx = 0
         self.measurement_idx = 0
         self.groundtruth_idx = 0
-        self.len = len(self.odometry_df)
+        self.len = len(self.odometry_df)-1
     
     def get_next(self, threshold):
         current_odometry = self.odometry_df.loc[self.odometry_idx]
