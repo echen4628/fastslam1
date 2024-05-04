@@ -59,7 +59,7 @@ for i in tqdm(range(dataloader.len)):
     final_landmark = combined_landmark
 
 
-# static_ax.scatter(combined_landmark[:, 0], combined_landmark[:,1])
+static_ax.scatter(combined_landmark[:, 0], combined_landmark[:,1])
 # plot all points
 static_fig, static_ax = plt.subplots()
 static_ax.scatter(groundtruth_x, groundtruth_y)
